@@ -1,0 +1,6 @@
+apiVersion: valhalla.ankri.io/v1alpha1
+kind: Valhalla
+metadata:
+  name: valhalla-sample
+spec:
+  # TODO(user): Add fields here
