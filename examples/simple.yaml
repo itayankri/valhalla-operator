@@ -4,6 +4,8 @@ metadata:
   name: simple-example
 spec:
   pbfUrl: https://download.geofabrik.de/asia/israel-and-palestine-latest.osm.pbf
+  minReplicas: 1
+  maxReplicas: 3
   persistence:
     storage: "100Mi"
     storageClassName: nfs-csi

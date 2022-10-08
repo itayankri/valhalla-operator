@@ -49,6 +49,14 @@ type ValhallaReconciler struct {
 	log    logr.Logger
 }
 
+func NewValhallaReconciler(client client.Client, scheme *runtime.Scheme) *ValhallaReconciler {
+	return &ValhallaReconciler{
+		Client: client,
+		Scheme: scheme,
+		log:    ctrl.Log.WithName("controllers").WithName("Valhalla"),
+	}
+}
+
 //+kubebuilder:rbac:groups=valhalla.ankri.io,resources=valhallas,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=pods/exec,verbs=create
 // +kubebuilder:rbac:groups="",resources=pods,verbs=update;get;list;watch

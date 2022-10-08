@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	defaultImage             = "valhalla/valhalla"
+	defaultImage             = "valhalla/valhalla:run-latest"
 	OperatorPausedAnnotation = "valhalla/operator.paused"
 )
 
