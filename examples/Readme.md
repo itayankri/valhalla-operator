@@ -10,7 +10,7 @@ kind create cluster --name demo --config ./kind-config.yaml
 ```
 
 ### Setting up an NFS server on the cluster
-An OSRMCluster requires a volume that can be shared between multiple pods. In order to achieve that we are going to use an NFS server and a volume provisioner that will take advantage of this NFS server. Same as the previous step, you can skip this step if you already have a PersistentVolume provisioner installed on your cluster (if you are running in a cloud environment such as GCP for example).
+An Valhalla Instance requires a volume that can be shared between multiple pods. In order to achieve that we are going to use an NFS server and a volume provisioner that will take advantage of this NFS server. Same as the previous step, you can skip this step if you already have a PersistentVolume provisioner installed on your cluster (if you are running in a cloud environment such as GCP for example).
 
 First, we will install the NFS server:
 
@@ -36,14 +36,14 @@ kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nf
 The easiest way to install the operator at the moment is cloning this repository and run a *make* command (Make sure you have [golang](https://go.dev/) installed on your machine).
 
 ```bash
-git clone https://github.com/itayankri/OSRM-Operator.git
+git clone https://github.com/itayankri/Heimdall.git
 make install deploy
 ```
-This command will create a new CRD on your cluster called "osrmcluster" and a new namespace for the operator.
+This command will create a new CRD on your cluster called "valhalla" and a new namespace for the operator.
 
-### Creating a new OSRMCluster
-This directory contains two OSRMCluster resource examples - one for a single-profile osrm cluster and one for a multi-profile osrm cluster. You can create either on of them using kubectl.
+### Creating a new Valhalla Instance
+This directory contains an example Valhalla resource. You can create it using kubectl.
 
 ```bash
-kubectl apply -f multi_profile_osrm_cluster.yaml
+kubectl apply -f simple.yaml
 ```
