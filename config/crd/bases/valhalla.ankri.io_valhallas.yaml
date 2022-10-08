@@ -1,0 +1,85 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.7.0
+  creationTimestamp: null
+  name: valhallas.valhalla.ankri.io
+spec:
+  group: valhalla.ankri.io
+  names:
+    kind: Valhalla
+    listKind: ValhallaList
+    plural: valhallas
+    singular: valhalla
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Valhalla is the Schema for the valhallas API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ValhallaSpec defines the desired state of Valhalla
+            properties:
+              image:
+                type: string
+              maxReplicas:
+                format: int32
+                type: integer
+              minReplicas:
+                format: int32
+                type: integer
+              pbfUrl:
+                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                  Important: Run "make" to regenerate code after modifying this file'
+                type: string
+              persistence:
+                properties:
+                  storage:
+                    anyOf:
+                    - type: integer
+                    - type: string
+                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                    x-kubernetes-int-or-string: true
+                  storageClassName:
+                    type: string
+                type: object
+            type: object
+          status:
+            description: ValhallaStatus defines the observed state of Valhalla
+            properties:
+              observedGeneration:
+                description: ObservedGeneration is the latest generation observed
+                  by the operator.
+                format: int64
+                type: integer
+              paused:
+                description: Paused is true when the operator notices paused annotation.
+                type: boolean
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
