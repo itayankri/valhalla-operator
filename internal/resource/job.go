@@ -11,7 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const JobSuffix = ""
+const JobSuffix = "builder"
 
 type JobBuilder struct {
 	*ValhallaResourceBuilder
