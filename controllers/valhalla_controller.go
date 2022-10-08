@@ -59,9 +59,9 @@ type ValhallaReconciler struct {
 // +kubebuilder:rbac:groups="autoscaling",resources=horizontalpodautoscalers,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups="networking.k8s.io",resources=ingresses,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups="",resources=endpoints,verbs=get;watch;list
-// +kubebuilder:rbac:groups=osrm.ankri.io,resources=osrmclusters,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=osrm.ankri.io,resources=osrmclusters/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=osrm.ankri.io,resources=osrmclusters/finalizers,verbs=update
+// +kubebuilder:rbac:groups=valhalla.ankri.io,resources=valhallas,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=valhalla.ankri.io,resources=valhallas/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=valhalla.ankri.io,resources=valhallas/finalizers,verbs=update
 // +kubebuilder:rbac:groups="",resources=persistentvolumeclaims,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups="rbac.authorization.k8s.io",resources=roles,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups="rbac.authorization.k8s.io",resources=rolebindings,verbs=get;list;watch;create;update
@@ -74,28 +74,28 @@ func (r *ValhallaReconciler) getValhallaInstance(ctx context.Context, namespaced
 
 func (r *ValhallaReconciler) setReconciliationInProgress(
 	ctx context.Context,
-	osrmCluster *valhallav1alpha1.Valhalla,
+	instance *valhallav1alpha1.Valhalla,
 	condition metav1.ConditionStatus,
 ) {
-	osrmCluster.Status.SetCondition(string(status.ReconciliationInProgress), condition, "", "")
-	if err := r.Status().Update(ctx, osrmCluster); err != nil {
+	instance.Status.SetCondition(string(status.ReconciliationInProgress), condition, "", "")
+	if err := r.Status().Update(ctx, instance); err != nil {
 		ctrl.LoggerFrom(ctx).Error(err, "Failed to update Custom Resource status",
-			"namespace", osrmCluster.Namespace,
-			"name", osrmCluster.Name)
+			"namespace", instance.Namespace,
+			"name", instance.Name)
 	}
 }
 
 func (r *ValhallaReconciler) setReconciliationSuccess(
 	ctx context.Context,
-	osrmCluster *valhallav1alpha1.Valhalla,
+	instance *valhallav1alpha1.Valhalla,
 	condition metav1.ConditionStatus,
 	reason, msg string,
 ) {
-	osrmCluster.Status.SetCondition(string(status.ReconciliationSuccess), condition, reason, msg)
-	if err := r.Status().Update(ctx, osrmCluster); err != nil {
+	instance.Status.SetCondition(string(status.ReconciliationSuccess), condition, reason, msg)
+	if err := r.Status().Update(ctx, instance); err != nil {
 		ctrl.LoggerFrom(ctx).Error(err, "Failed to update Custom Resource status",
-			"namespace", osrmCluster.Namespace,
-			"name", osrmCluster.Name)
+			"namespace", instance.Namespace,
+			"name", instance.Name)
 	}
 }
 
@@ -176,7 +176,7 @@ func (r *ValhallaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		logger.Error(err, "Failed to marshal cluster spec")
 	}
 
-	logger.Info("Reconciling OSRMCluster", "spec", string(rawInstanceSpec))
+	logger.Info("Reconciling Valhalla instance", "spec", string(rawInstanceSpec))
 
 	resourceBuilder := resource.ValhallaResourceBuilder{
 		Instance: instance,

@@ -100,32 +100,6 @@ rules:
   - update
   - watch
 - apiGroups:
-  - osrm.ankri.io
-  resources:
-  - osrmclusters
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - osrm.ankri.io
-  resources:
-  - osrmclusters/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - osrm.ankri.io
-  resources:
-  - osrmclusters/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
   - rbac.authorization.k8s.io
   resources:
   - rolebindings
@@ -157,3 +131,17 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - valhalla.ankri.io
+  resources:
+  - valhallas/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - valhalla.ankri.io
+  resources:
+  - valhallas/status
+  verbs:
+  - get
+  - patch
+  - update
