@@ -1,0 +1,9 @@
+apiVersion: valhalla.ankri.io/v1alpha1
+kind: Valhalla
+metadata:
+  name: simple-example
+spec:
+  pbfUrl: https://download.geofabrik.de/asia/israel-and-palestine-latest.osm.pbf
+  persistence:
+    storage: "100Mi"
+    storageClassName: nfs-csi

@@ -17,8 +17,13 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"strings"
+
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+const defaultImage = "valhalla/valhalla"
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
@@ -27,15 +32,37 @@ import (
 type ValhallaSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	PBFURL      string          `json:"pbfUrl,omitempty"`
+	Image       *string         `json:"image,omitempty"`
+	Persistence PersistenceSpec `json:"persistence,omitempty"`
+	MinReplicas *int32          `json:"minReplicas,omitempty"`
+	MaxReplicas *int32          `json:"maxReplicas,omitempty"`
+}
 
-	// Foo is an example field of Valhalla. Edit valhalla_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+func (spec *ValhallaSpec) GetImage() string {
+	if spec.Image != nil {
+		return *spec.Image
+	}
+	return defaultImage
+}
+
+func (spec *ValhallaSpec) GetPbfFileName() string {
+	split := strings.Split(spec.PBFURL, "/")
+	return split[len(split)-1]
+}
+
+type PersistenceSpec struct {
+	StorageClassName string             `json:"storageClassName,omitempty"`
+	Storage          *resource.Quantity `json:"storage,omitempty"`
 }
 
 // ValhallaStatus defines the observed state of Valhalla
 type ValhallaStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Paused is true when the operator notices paused annotation.
+	Paused bool `json:"paused,omitempty"`
+
+	// ObservedGeneration is the latest generation observed by the operator.
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -48,6 +75,10 @@ type Valhalla struct {
 
 	Spec   ValhallaSpec   `json:"spec,omitempty"`
 	Status ValhallaStatus `json:"status,omitempty"`
+}
+
+func (cluster Valhalla) ChildResourceName(name string) string {
+	return strings.TrimSuffix(strings.Join([]string{cluster.Name, name}, "-"), "-")
 }
 
 //+kubebuilder:object:root=true
