@@ -75,7 +75,7 @@ func (builder *JobBuilder) Update(object client.Object) error {
 						},
 						VolumeMounts: []corev1.VolumeMount{
 							{
-								Name:      name,
+								Name:      builder.Instance.Name,
 								MountPath: valhallaDataPath,
 							},
 						},
