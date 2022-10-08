@@ -65,7 +65,7 @@ func (builder *JobBuilder) Update(object client.Object) error {
 								valhalla_build_config --mjolnir-tile-dir ${PWD}/valhalla_tiles --mjolnir-tile-extract ./valhalla_tiles.tar --mjolnir-timezone ./valhalla_tiles/timezones.sqlite --mjolnir-admin ./valhalla_tiles/admins.sqlite > ./conf/valhalla.json && \
 								valhalla_build_admins --config ./conf/valhalla.json %s && \
 								valhalla_build_timezones > ./valhalla_tiles/timezones.sqlite && \
-								valhalla_build_tiles -c ./conf/valhalla.json %s && \
+								valhalla_build_tiles -c ./conf/valhalla.json %s
 							`,
 								valhallaDataPath,
 								builder.Instance.Spec.PBFURL,
@@ -83,10 +83,10 @@ func (builder *JobBuilder) Update(object client.Object) error {
 				},
 				Volumes: []corev1.Volume{
 					{
-						Name: name,
+						Name: builder.Instance.Name,
 						VolumeSource: corev1.VolumeSource{
 							PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-								ClaimName: name,
+								ClaimName: builder.Instance.Name,
 								ReadOnly:  false,
 							},
 						},

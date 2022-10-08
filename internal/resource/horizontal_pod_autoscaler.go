@@ -9,6 +9,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+const HorizontalPodAutoscalerSuffix = ""
+
 type HorizontalPodAutoscalerBuilder struct {
 	*ValhallaResourceBuilder
 }
@@ -20,14 +22,14 @@ func (builder *ValhallaResourceBuilder) HorizontalPodAutoscaler() *HorizontalPod
 func (builder *HorizontalPodAutoscalerBuilder) Build() (client.Object, error) {
 	return &autoscalingv1.HorizontalPodAutoscaler{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      builder.Instance.ChildResourceName(JobSuffix),
+			Name:      builder.Instance.ChildResourceName(HorizontalPodAutoscalerSuffix),
 			Namespace: builder.Instance.Namespace,
 		},
 	}, nil
 }
 
 func (builder *HorizontalPodAutoscalerBuilder) Update(object client.Object) error {
-	name := builder.Instance.ChildResourceName(JobSuffix)
+	name := builder.Instance.ChildResourceName(HorizontalPodAutoscalerSuffix)
 	hpa := object.(*autoscalingv1.HorizontalPodAutoscaler)
 
 	targetCPUUtilizationPercentage := int32(85)

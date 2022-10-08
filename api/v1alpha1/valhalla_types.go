@@ -101,8 +101,8 @@ type Valhalla struct {
 	Status ValhallaStatus `json:"status,omitempty"`
 }
 
-func (cluster Valhalla) ChildResourceName(name string) string {
-	return strings.TrimSuffix(strings.Join([]string{cluster.Name, name}, "-"), "-")
+func (valhalla Valhalla) ChildResourceName(name string) string {
+	return strings.TrimSuffix(strings.Join([]string{valhalla.Name, name}, "-"), "-")
 }
 
 //+kubebuilder:object:root=true

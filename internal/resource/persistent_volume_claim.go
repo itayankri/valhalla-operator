@@ -10,6 +10,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+const PersistentVolumeClaimSuffix = ""
+
 type PersistentVolumeClaimBuilder struct {
 	*ValhallaResourceBuilder
 }
@@ -19,7 +21,7 @@ func (builder *ValhallaResourceBuilder) PersistentVolumeClaim() *PersistentVolum
 }
 
 func (builder *PersistentVolumeClaimBuilder) Build() (client.Object, error) {
-	name := builder.Instance.ChildResourceName(ServiceSuffix)
+	name := builder.Instance.ChildResourceName(PersistentVolumeClaimSuffix)
 	return &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
