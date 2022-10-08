@@ -23,7 +23,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const defaultImage = "valhalla/valhalla"
+const (
+	defaultImage             = "valhalla/valhalla"
+	OperatorPausedAnnotation = "valhalla/operator.paused"
+)
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
@@ -63,6 +66,27 @@ type ValhallaStatus struct {
 
 	// ObservedGeneration is the latest generation observed by the operator.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
+
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+}
+
+func (clusterStatus *ValhallaStatus) SetCondition(
+	conditionType string,
+	conditionStatus metav1.ConditionStatus,
+	reason string,
+	messages ...string,
+) {
+	for i := range clusterStatus.Conditions {
+		if clusterStatus.Conditions[i].Type == conditionType {
+			if clusterStatus.Conditions[i].Status != conditionStatus {
+				clusterStatus.Conditions[i].LastTransitionTime = metav1.Now()
+			}
+			clusterStatus.Conditions[i].Status = conditionStatus
+			clusterStatus.Conditions[i].Reason = reason
+			clusterStatus.Conditions[i].Message = strings.Join(messages, ". ")
+			break
+		}
+	}
 }
 
 //+kubebuilder:object:root=true
