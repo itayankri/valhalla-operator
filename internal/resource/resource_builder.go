@@ -1,7 +1,7 @@
 package resource
 
 import (
-	valhallav1alpha1 "github.com/itayankri/Heimdall/api/v1alpha1"
+	valhallav1alpha1 "github.com/itayankri/valhalla-operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

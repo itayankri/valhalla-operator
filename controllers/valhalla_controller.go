@@ -22,8 +22,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/itayankri/Heimdall/internal/resource"
-	"github.com/itayankri/Heimdall/internal/status"
+	"github.com/itayankri/valhalla-operator/internal/resource"
+	"github.com/itayankri/valhalla-operator/internal/status"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -39,7 +39,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"github.com/go-logr/logr"
-	valhallav1alpha1 "github.com/itayankri/Heimdall/api/v1alpha1"
+	valhallav1alpha1 "github.com/itayankri/valhalla-operator/api/v1alpha1"
 )
 
 // ValhallaReconciler reconciles a Valhalla object

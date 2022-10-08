@@ -1,4 +1,4 @@
-module github.com/itayankri/Heimdall
+module github.com/itayankri/valhalla-operator
 
 go 1.16
 
