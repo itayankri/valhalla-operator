@@ -1,4 +1,4 @@
-apiVersion: valhalla.ankri.io/v1alpha1
+apiVersion: valhalla.itayankri/v1alpha1
 kind: Valhalla
 metadata:
   name: simple-example

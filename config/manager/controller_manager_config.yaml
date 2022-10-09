@@ -8,4 +8,4 @@ webhook:
   port: 9443
 leaderElection:
   leaderElect: true
-  resourceName: 6593e2bd.ankri.io
+  resourceName: 6593e2bd.itayankri

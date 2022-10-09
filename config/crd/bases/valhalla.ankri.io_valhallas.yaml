@@ -6,9 +6,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.7.0
   creationTimestamp: null
-  name: valhallas.valhalla.ankri.io
+  name: valhallas.valhalla.itayankri
 spec:
-  group: valhalla.ankri.io
+  group: valhalla.itayankri
   names:
     kind: Valhalla
     listKind: ValhallaList

@@ -120,7 +120,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - valhalla.ankri.io
+  - valhalla.itayankri
   resources:
   - valhallas
   verbs:
@@ -132,13 +132,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - valhalla.ankri.io
+  - valhalla.itayankri
   resources:
   - valhallas/finalizers
   verbs:
   - update
 - apiGroups:
-  - valhalla.ankri.io
+  - valhalla.itayankri
   resources:
   - valhallas/status
   verbs:
