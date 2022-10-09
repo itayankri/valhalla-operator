@@ -25,6 +25,7 @@ func (builder *ValhallaResourceBuilder) ResourceBuilders(phase valhallav1alpha1.
 		builder.Job(),
 		builder.HorizontalPodAutoscaler(),
 		builder.PersistentVolumeClaim(),
+		builder.PodDisruptionBudget(),
 	}
 	return builders
 }

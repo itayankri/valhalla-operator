@@ -22,6 +22,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 const (
@@ -56,6 +57,7 @@ type ValhallaSpec struct {
 	Persistence   PersistenceSpec              `json:"persistence,omitempty"`
 	MinReplicas   *int32                       `json:"minReplicas,omitempty"`
 	MaxReplicas   *int32                       `json:"maxReplicas,omitempty"`
+	MinAvailable  *int32                       `json:"minAvailable,omitempty"`
 	ThreadsPerPod *int32                       `json:"threadsPerPod,omitempty"`
 	Resources     *corev1.ResourceRequirements `json:"resources,omitempty"`
 }
@@ -79,6 +81,14 @@ func (spec *ValhallaSpec) GetImage() string {
 		return *spec.Image
 	}
 	return defaultImage
+}
+
+func (spec *ValhallaSpec) GetMinAvailable() *intstr.IntOrString {
+	if spec.MinAvailable != nil {
+		return &intstr.IntOrString{IntVal: *spec.MinAvailable}
+	}
+
+	return &intstr.IntOrString{IntVal: 1}
 }
 
 func (spec *ValhallaSpec) GetPbfFileName() string {
