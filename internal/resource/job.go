@@ -3,6 +3,7 @@ package resource
 import (
 	"fmt"
 
+	valhallav1alpha1 "github.com/itayankri/valhalla-operator/api/v1alpha1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -31,7 +32,6 @@ func (builder *JobBuilder) Build() (client.Object, error) {
 }
 
 func (builder *JobBuilder) Update(object client.Object) error {
-	name := builder.Instance.ChildResourceName(JobSuffix)
 	job := object.(*batchv1.Job)
 
 	job.Spec = batchv1.JobSpec{
@@ -44,7 +44,7 @@ func (builder *JobBuilder) Update(object client.Object) error {
 				RestartPolicy: corev1.RestartPolicyOnFailure,
 				Containers: []corev1.Container{
 					{
-						Name:  fmt.Sprintf("%s-%s", name, "map-builder"),
+						Name:  "map-builder",
 						Image: builder.Instance.Spec.GetImage(),
 						Resources: corev1.ResourceRequirements{
 							Requests: map[corev1.ResourceName]resource.Quantity{
@@ -62,15 +62,21 @@ func (builder *JobBuilder) Update(object client.Object) error {
 								apt update && \
 								apt --assume-yes install wget && \
 								wget %s && \
-								valhalla_build_config --mjolnir-tile-dir ${PWD}/valhalla_tiles --mjolnir-tile-extract ./valhalla_tiles.tar --mjolnir-timezone ./valhalla_tiles/timezones.sqlite --mjolnir-admin ./valhalla_tiles/admins.sqlite > ./conf/valhalla.json && \
+								mkdir valhalla_tiles conf
+								valhalla_build_config --mjolnir-tile-dir /data/valhalla_tiles \
+									--mjolnir-tile-extract /data/valhalla_tiles.tar \
+									--mjolnir-timezone /data/valhalla_tiles/timezones.sqlite \
+									--mjolnir-admin /data/valhalla_tiles/admins.sqlite \
+									--mjolnir-traffic-extract /data/traffic.tar> /data/conf/valhalla.json && \
 								valhalla_build_admins --config ./conf/valhalla.json %s && \
 								valhalla_build_timezones > ./valhalla_tiles/timezones.sqlite && \
-								valhalla_build_tiles -c ./conf/valhalla.json %s
+								valhalla_build_tiles --config ./conf/valhalla.json %s && \
+								find valhalla_tiles | sort -n | tar -cf "valhalla_tiles.tar" --no-recursion -T -
 							`,
 								valhallaDataPath,
 								builder.Instance.Spec.PBFURL,
-								builder.Instance.Spec.PBFURL,
-								builder.Instance.Spec.PBFURL,
+								builder.Instance.Spec.GetPbfFileName(),
+								builder.Instance.Spec.GetPbfFileName(),
 							),
 						},
 						VolumeMounts: []corev1.VolumeMount{
@@ -101,4 +107,8 @@ func (builder *JobBuilder) Update(object client.Object) error {
 	}
 
 	return nil
+}
+
+func (_ *JobBuilder) GetPhase() valhallav1alpha1.LifecyclePhase {
+	return valhallav1alpha1.MapBuilding
 }

@@ -9,14 +9,16 @@ import (
 type ResourceBuilder interface {
 	Build() (client.Object, error)
 	Update(client.Object) error
+	GetPhase() valhallav1alpha1.LifecyclePhase
 }
 
 type ValhallaResourceBuilder struct {
 	Instance *valhallav1alpha1.Valhalla
 	Scheme   *runtime.Scheme
+	Phase    valhallav1alpha1.LifecyclePhase
 }
 
-func (builder *ValhallaResourceBuilder) ResourceBuilders() []ResourceBuilder {
+func (builder *ValhallaResourceBuilder) ResourceBuilders(phase valhallav1alpha1.LifecyclePhase) []ResourceBuilder {
 	builders := []ResourceBuilder{
 		builder.Deployment(),
 		builder.Service(),

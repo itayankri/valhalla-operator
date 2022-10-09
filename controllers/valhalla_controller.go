@@ -80,6 +80,12 @@ func (r *ValhallaReconciler) getValhallaInstance(ctx context.Context, namespaced
 	return instance, err
 }
 
+func (r *ValhallaReconciler) getJob(ctx context.Context, namespacedName types.NamespacedName) (*batchv1.Job, error) {
+	job := &batchv1.Job{}
+	err := r.Client.Get(ctx, namespacedName, job)
+	return job, err
+}
+
 func (r *ValhallaReconciler) setReconciliationInProgress(
 	ctx context.Context,
 	instance *valhallav1alpha1.Valhalla,
@@ -99,8 +105,20 @@ func (r *ValhallaReconciler) setReconciliationSuccess(
 	condition metav1.ConditionStatus,
 	reason, msg string,
 ) {
+	phaseCompleted, err := r.isPhaseComplete(ctx, instance)
+	if err != nil {
+		ctrl.LoggerFrom(ctx).Error(err, "Failed to update Custom Resource status",
+			"namespace", instance.Namespace,
+			"name", instance.Name)
+		return
+	}
+
+	if phaseCompleted {
+		instance.Status.Phase = instance.Status.Phase.GetNextPhase()
+	}
+
 	instance.Status.SetCondition(string(status.ReconciliationSuccess), condition, reason, msg)
-	if err := r.Status().Update(ctx, instance); err != nil {
+	if err = r.Status().Update(ctx, instance); err != nil {
 		ctrl.LoggerFrom(ctx).Error(err, "Failed to update Custom Resource status",
 			"namespace", instance.Namespace,
 			"name", instance.Name)
@@ -184,39 +202,67 @@ func (r *ValhallaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		logger.Error(err, "Failed to marshal cluster spec")
 	}
 
-	logger.Info("Reconciling Valhalla instance", "spec", string(rawInstanceSpec))
+	logger.Info(fmt.Sprintf("Reconciling Valhalla instance - phase %d", instance.Status.Phase), "spec", string(rawInstanceSpec))
 
 	resourceBuilder := resource.ValhallaResourceBuilder{
 		Instance: instance,
 		Scheme:   r.Scheme,
 	}
 
-	builders := resourceBuilder.ResourceBuilders()
+	builders := resourceBuilder.ResourceBuilders(instance.Status.Phase)
 
 	for _, builder := range builders {
-		resource, err := builder.Build()
-		if err != nil {
-			return ctrl.Result{}, err
-		}
+		if builder.GetPhase() <= instance.Status.Phase {
+			resource, err := builder.Build()
+			if err != nil {
+				return ctrl.Result{}, err
+			}
 
-		var operationResult controllerutil.OperationResult
-		err = clientretry.RetryOnConflict(clientretry.DefaultRetry, func() error {
-			var apiError error
-			operationResult, apiError = controllerutil.CreateOrUpdate(ctx, r.Client, resource, func() error {
-				return builder.Update(resource)
+			var operationResult controllerutil.OperationResult
+			err = clientretry.RetryOnConflict(clientretry.DefaultRetry, func() error {
+				var apiError error
+				operationResult, apiError = controllerutil.CreateOrUpdate(ctx, r.Client, resource, func() error {
+					return builder.Update(resource)
+				})
+				return apiError
 			})
-			return apiError
-		})
-		r.logOperationResult(logger, instance, resource, operationResult, err)
-		if err != nil {
-			r.setReconciliationSuccess(ctx, instance, metav1.ConditionFalse, "Error", err.Error())
-			return ctrl.Result{}, err
+			r.logOperationResult(logger, instance, resource, operationResult, err)
+			if err != nil {
+				r.setReconciliationSuccess(ctx, instance, metav1.ConditionFalse, "Error", err.Error())
+				return ctrl.Result{}, err
+			}
 		}
 	}
 
+	r.setReconciliationSuccess(ctx, instance, metav1.ConditionTrue, "Success", "Reconciliation completed")
+	r.setReconciliationInProgress(ctx, instance, metav1.ConditionFalse)
 	logger.Info("Finished reconciling")
 
 	return ctrl.Result{}, nil
+}
+
+func (r *ValhallaReconciler) isPhaseComplete(ctx context.Context, instance *valhallav1alpha1.Valhalla) (bool, error) {
+	if instance.Status.Phase == valhallav1alpha1.Empty {
+		return true, nil
+	}
+
+	if instance.Status.Phase == valhallav1alpha1.MapBuilding {
+		job, err := r.getJob(ctx, types.NamespacedName{
+			Name:      fmt.Sprintf("%s-builder", instance.Name),
+			Namespace: instance.Namespace,
+		})
+		if err != nil {
+			return false, err
+		}
+
+		for _, condition := range job.Status.Conditions {
+			if condition.Type == "Complete" {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
 }
 
 func isBeingDeleted(object metav1.Object) bool {

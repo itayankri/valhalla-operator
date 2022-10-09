@@ -28,6 +28,21 @@ const (
 	OperatorPausedAnnotation = "valhalla/operator.paused"
 )
 
+type LifecyclePhase int32
+
+const (
+	Empty       LifecyclePhase = 0
+	MapBuilding LifecyclePhase = 1
+	Serving     LifecyclePhase = 2
+)
+
+func (phase LifecyclePhase) GetNextPhase() LifecyclePhase {
+	if phase == Serving {
+		return Serving
+	}
+	return LifecyclePhase(int32(phase) + 1)
+}
+
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
@@ -66,6 +81,8 @@ type ValhallaStatus struct {
 
 	// ObservedGeneration is the latest generation observed by the operator.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
+
+	Phase LifecyclePhase `json:"phase,omitempty"`
 
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }

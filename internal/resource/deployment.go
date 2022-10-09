@@ -3,6 +3,7 @@ package resource
 import (
 	"fmt"
 
+	valhallav1alpha1 "github.com/itayankri/valhalla-operator/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -71,7 +72,7 @@ func (builder *DeploymentBuilder) Update(object client.Object) error {
 						Args: []string{
 							fmt.Sprintf(`
 								cd %s && \
-								valhalla_service valhalla.json 2
+								valhalla_service ./conf/valhalla.json 2
 							`, valhallaDataPath),
 						},
 						VolumeMounts: []corev1.VolumeMount{
@@ -102,4 +103,8 @@ func (builder *DeploymentBuilder) Update(object client.Object) error {
 	}
 
 	return nil
+}
+
+func (_ *DeploymentBuilder) GetPhase() valhallav1alpha1.LifecyclePhase {
+	return valhallav1alpha1.Serving
 }
