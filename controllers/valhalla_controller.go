@@ -23,7 +23,6 @@ import (
 	"strconv"
 
 	"github.com/itayankri/valhalla-operator/internal/resource"
-	"github.com/itayankri/valhalla-operator/internal/status"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -86,28 +85,13 @@ func (r *ValhallaReconciler) getJob(ctx context.Context, namespacedName types.Na
 	return job, err
 }
 
-func (r *ValhallaReconciler) setReconciliationInProgress(
+func (r *ValhallaReconciler) updateValhallaStatus(
 	ctx context.Context,
 	instance *valhallav1alpha1.Valhalla,
-	condition metav1.ConditionStatus,
-) {
-	instance.Status.SetCondition(string(status.ReconciliationInProgress), condition, "", "")
-	if err := r.Status().Update(ctx, instance); err != nil {
-		ctrl.LoggerFrom(ctx).Error(err, "Failed to update Custom Resource status",
-			"namespace", instance.Namespace,
-			"name", instance.Name)
-	}
-}
-
-func (r *ValhallaReconciler) setReconciliationSuccess(
-	ctx context.Context,
-	instance *valhallav1alpha1.Valhalla,
-	condition metav1.ConditionStatus,
-	reason, msg string,
 ) {
 	phaseCompleted, err := r.isPhaseComplete(ctx, instance)
 	if err != nil {
-		ctrl.LoggerFrom(ctx).Error(err, "Failed to update Custom Resource status",
+		ctrl.LoggerFrom(ctx).Error(err, "Failed to fetch map builder job",
 			"namespace", instance.Namespace,
 			"name", instance.Name)
 		return
@@ -117,7 +101,6 @@ func (r *ValhallaReconciler) setReconciliationSuccess(
 		instance.Status.Phase = instance.Status.Phase.GetNextPhase()
 	}
 
-	instance.Status.SetCondition(string(status.ReconciliationSuccess), condition, reason, msg)
 	if err = r.Status().Update(ctx, instance); err != nil {
 		ctrl.LoggerFrom(ctx).Error(err, "Failed to update Custom Resource status",
 			"namespace", instance.Namespace,
@@ -228,14 +211,13 @@ func (r *ValhallaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			})
 			r.logOperationResult(logger, instance, resource, operationResult, err)
 			if err != nil {
-				r.setReconciliationSuccess(ctx, instance, metav1.ConditionFalse, "Error", err.Error())
+				r.updateValhallaStatus(ctx, instance)
 				return ctrl.Result{}, err
 			}
 		}
 	}
 
-	r.setReconciliationSuccess(ctx, instance, metav1.ConditionTrue, "Success", "Reconciliation completed")
-	r.setReconciliationInProgress(ctx, instance, metav1.ConditionFalse)
+	r.updateValhallaStatus(ctx, instance)
 	logger.Info("Finished reconciling")
 
 	return ctrl.Result{}, nil

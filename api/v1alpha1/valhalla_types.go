@@ -87,25 +87,6 @@ type ValhallaStatus struct {
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
-func (clusterStatus *ValhallaStatus) SetCondition(
-	conditionType string,
-	conditionStatus metav1.ConditionStatus,
-	reason string,
-	messages ...string,
-) {
-	for i := range clusterStatus.Conditions {
-		if clusterStatus.Conditions[i].Type == conditionType {
-			if clusterStatus.Conditions[i].Status != conditionStatus {
-				clusterStatus.Conditions[i].LastTransitionTime = metav1.Now()
-			}
-			clusterStatus.Conditions[i].Status = conditionStatus
-			clusterStatus.Conditions[i].Reason = reason
-			clusterStatus.Conditions[i].Message = strings.Join(messages, ". ")
-			break
-		}
-	}
-}
-
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
