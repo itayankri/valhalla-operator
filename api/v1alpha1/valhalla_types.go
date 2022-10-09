@@ -51,12 +51,13 @@ func (phase LifecyclePhase) GetNextPhase() LifecyclePhase {
 type ValhallaSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	PBFURL      string          `json:"pbfUrl,omitempty"`
-	Image       *string         `json:"image,omitempty"`
-	Persistence PersistenceSpec `json:"persistence,omitempty"`
-	MinReplicas *int32          `json:"minReplicas,omitempty"`
-	MaxReplicas *int32          `json:"maxReplicas,omitempty"`
-	Resources   *corev1.ResourceRequirements
+	PBFURL        string                       `json:"pbfUrl,omitempty"`
+	Image         *string                      `json:"image,omitempty"`
+	Persistence   PersistenceSpec              `json:"persistence,omitempty"`
+	MinReplicas   *int32                       `json:"minReplicas,omitempty"`
+	MaxReplicas   *int32                       `json:"maxReplicas,omitempty"`
+	ThreadsPerPod *int32                       `json:"threadsPerPod,omitempty"`
+	Resources     *corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 func (spec *ValhallaSpec) GetResources() *corev1.ResourceRequirements {
@@ -64,6 +65,13 @@ func (spec *ValhallaSpec) GetResources() *corev1.ResourceRequirements {
 		return &corev1.ResourceRequirements{}
 	}
 	return spec.Resources
+}
+
+func (spec *ValhallaSpec) GetThreadsPerPod() int32 {
+	if spec.ThreadsPerPod == nil {
+		return 2
+	}
+	return *spec.ThreadsPerPod
 }
 
 func (spec *ValhallaSpec) GetImage() string {

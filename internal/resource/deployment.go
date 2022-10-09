@@ -65,8 +65,11 @@ func (builder *DeploymentBuilder) Update(object client.Object) error {
 						Args: []string{
 							fmt.Sprintf(`
 								cd %s && \
-								valhalla_service ./conf/valhalla.json 2
-							`, valhallaDataPath),
+								valhalla_service ./conf/valhalla.json %d
+							`,
+								valhallaDataPath,
+								builder.Instance.Spec.GetThreadsPerPod(),
+							),
 						},
 						VolumeMounts: []corev1.VolumeMount{
 							{
