@@ -13,6 +13,7 @@ import (
 )
 
 const JobSuffix = "builder"
+const mapBuilderImage = "itayankri/valhalla-builder:latest"
 
 type JobBuilder struct {
 	*ValhallaResourceBuilder
@@ -45,39 +46,22 @@ func (builder *JobBuilder) Update(object client.Object) error {
 				Containers: []corev1.Container{
 					{
 						Name:  "map-builder",
-						Image: builder.Instance.Spec.GetImage(),
+						Image: mapBuilderImage,
 						Resources: corev1.ResourceRequirements{
 							Requests: map[corev1.ResourceName]resource.Quantity{
 								"memory": resource.MustParse("1000M"),
 								"cpu":    resource.MustParse("1000m"),
 							},
 						},
-						Command: []string{
-							"/bin/sh",
-							"-c",
-						},
-						Args: []string{
-							fmt.Sprintf(`
-								cd %s && \
-								apt update && \
-								apt --assume-yes install wget && \
-								wget %s && \
-								mkdir valhalla_tiles conf
-								valhalla_build_config --mjolnir-tile-dir /data/valhalla_tiles \
-									--mjolnir-tile-extract /data/valhalla_tiles.tar \
-									--mjolnir-timezone /data/valhalla_tiles/timezones.sqlite \
-									--mjolnir-admin /data/valhalla_tiles/admins.sqlite \
-									--mjolnir-traffic-extract /data/traffic.tar> /data/conf/valhalla.json && \
-								valhalla_build_admins --config ./conf/valhalla.json %s && \
-								valhalla_build_timezones > ./valhalla_tiles/timezones.sqlite && \
-								valhalla_build_tiles --config ./conf/valhalla.json %s && \
-								find valhalla_tiles | sort -n | tar -cf "valhalla_tiles.tar" --no-recursion -T -
-							`,
-								valhallaDataPath,
-								builder.Instance.Spec.PBFURL,
-								builder.Instance.Spec.GetPbfFileName(),
-								builder.Instance.Spec.GetPbfFileName(),
-							),
+						Env: []corev1.EnvVar{
+							{
+								Name:  "ROOT_DIR",
+								Value: valhallaDataPath,
+							},
+							{
+								Name:  "PBF_URL",
+								Value: builder.Instance.Spec.PBFURL,
+							},
 						},
 						VolumeMounts: []corev1.VolumeMount{
 							{

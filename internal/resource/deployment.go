@@ -12,6 +12,7 @@ import (
 )
 
 const DeploymentSuffix = ""
+const workerImage = "itayankri/valhalla-worker:latest"
 
 type DeploymentBuilder struct {
 	*ValhallaResourceBuilder
@@ -51,25 +52,22 @@ func (builder *DeploymentBuilder) Update(object client.Object) error {
 				Containers: []corev1.Container{
 					{
 						Name:  name,
-						Image: builder.Instance.Spec.GetImage(),
+						Image: workerImage,
 						Ports: []corev1.ContainerPort{
 							{
 								ContainerPort: 5000,
 							},
 						},
 						Resources: *builder.Instance.Spec.GetResources(),
-						Command: []string{
-							"/bin/sh",
-							"-c",
-						},
-						Args: []string{
-							fmt.Sprintf(`
-								cd %s && \
-								valhalla_service ./conf/valhalla.json %d
-							`,
-								valhallaDataPath,
-								builder.Instance.Spec.GetThreadsPerPod(),
-							),
+						Env: []corev1.EnvVar{
+							{
+								Name:  "ROOT_DIR",
+								Value: valhallaDataPath,
+							},
+							{
+								Name:  "THREADS_PER_POD",
+								Value: fmt.Sprint(builder.Instance.Spec.GetThreadsPerPod()),
+							},
 						},
 						VolumeMounts: []corev1.VolumeMount{
 							{
