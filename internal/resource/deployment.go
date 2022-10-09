@@ -6,7 +6,6 @@ import (
 	valhallav1alpha1 "github.com/itayankri/valhalla-operator/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -34,7 +33,6 @@ func (builder *DeploymentBuilder) Build() (client.Object, error) {
 func (builder *DeploymentBuilder) Update(object client.Object) error {
 	name := builder.Instance.ChildResourceName(DeploymentSuffix)
 	deployment := object.(*appsv1.Deployment)
-	// pbfFileName := builder.Instance.Spec.GetPbfFileName()
 
 	deployment.Spec = appsv1.DeploymentSpec{
 		Replicas: builder.Instance.Spec.MinReplicas,
@@ -59,12 +57,7 @@ func (builder *DeploymentBuilder) Update(object client.Object) error {
 								ContainerPort: 5000,
 							},
 						},
-						Resources: corev1.ResourceRequirements{
-							Requests: map[corev1.ResourceName]resource.Quantity{
-								"memory": resource.MustParse("1Gi"),
-								"cpu":    resource.MustParse("1"),
-							},
-						},
+						Resources: *builder.Instance.Spec.GetResources(),
 						Command: []string{
 							"/bin/sh",
 							"-c",

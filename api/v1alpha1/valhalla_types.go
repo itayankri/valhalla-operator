@@ -19,6 +19,7 @@ package v1alpha1
 import (
 	"strings"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -55,6 +56,14 @@ type ValhallaSpec struct {
 	Persistence PersistenceSpec `json:"persistence,omitempty"`
 	MinReplicas *int32          `json:"minReplicas,omitempty"`
 	MaxReplicas *int32          `json:"maxReplicas,omitempty"`
+	Resources   *corev1.ResourceRequirements
+}
+
+func (spec *ValhallaSpec) GetResources() *corev1.ResourceRequirements {
+	if spec.Resources == nil {
+		return &corev1.ResourceRequirements{}
+	}
+	return spec.Resources
 }
 
 func (spec *ValhallaSpec) GetImage() string {

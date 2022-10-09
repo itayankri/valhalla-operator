@@ -230,7 +230,7 @@ func (r *ValhallaReconciler) isPhaseComplete(ctx context.Context, instance *valh
 
 	if instance.Status.Phase == valhallav1alpha1.MapBuilding {
 		job, err := r.getJob(ctx, types.NamespacedName{
-			Name:      fmt.Sprintf("%s-builder", instance.Name),
+			Name:      instance.ChildResourceName("builder"),
 			Namespace: instance.Namespace,
 		})
 		if err != nil {
