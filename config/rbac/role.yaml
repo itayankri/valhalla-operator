@@ -102,7 +102,7 @@ rules:
 - apiGroups:
   - policy
   resources:
-  - poddisruptionbudgets
+  - poddisruptionbusgets
   verbs:
   - create
   - get
