@@ -57,7 +57,7 @@ func NewValhallaReconciler(client client.Client, scheme *runtime.Scheme) *Valhal
 	}
 }
 
-//+kubebuilder:rbac:groups=valhalla.ankri.io,resources=valhallas,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=valhalla.ankri.io,resources=valhallas,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=pods/exec,verbs=create
 // +kubebuilder:rbac:groups="",resources=pods,verbs=update;get;list;watch
 // +kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch;create;update
@@ -65,7 +65,7 @@ func NewValhallaReconciler(client client.Client, scheme *runtime.Scheme) *Valhal
 // +kubebuilder:rbac:groups="batch",resources=jobs,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups="apps",resources=deployments,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups="autoscaling",resources=horizontalpodautoscalers,verbs=get;list;watch;create;update
-// +kubebuilder:rbac:groups="policy",resources=poddisruptionbudgets,verbs=get;list;watch;create;update
+// +kubebuilder:rbac:groups="autoscaling",resources=horizontalpodautoscalers,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups="networking.k8s.io",resources=ingresses,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups="",resources=endpoints,verbs=get;watch;list
 // +kubebuilder:rbac:groups=valhalla.ankri.io,resources=valhallas,verbs=get;list;watch;create;update;patch;delete
