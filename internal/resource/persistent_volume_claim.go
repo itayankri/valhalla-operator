@@ -51,6 +51,6 @@ func (builder *PersistentVolumeClaimBuilder) Update(object client.Object) error 
 	return nil
 }
 
-func (_ *PersistentVolumeClaimBuilder) GetPhase() valhallav1alpha1.LifecyclePhase {
+func (*PersistentVolumeClaimBuilder) GetPhase() valhallav1alpha1.LifecyclePhase {
 	return valhallav1alpha1.Empty
 }

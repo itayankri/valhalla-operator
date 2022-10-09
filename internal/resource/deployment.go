@@ -101,6 +101,6 @@ func (builder *DeploymentBuilder) Update(object client.Object) error {
 	return nil
 }
 
-func (_ *DeploymentBuilder) GetPhase() valhallav1alpha1.LifecyclePhase {
+func (*DeploymentBuilder) GetPhase() valhallav1alpha1.LifecyclePhase {
 	return valhallav1alpha1.Serving
 }

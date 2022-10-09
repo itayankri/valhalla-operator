@@ -109,6 +109,6 @@ func (builder *JobBuilder) Update(object client.Object) error {
 	return nil
 }
 
-func (_ *JobBuilder) GetPhase() valhallav1alpha1.LifecyclePhase {
+func (*JobBuilder) GetPhase() valhallav1alpha1.LifecyclePhase {
 	return valhallav1alpha1.MapBuilding
 }

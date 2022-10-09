@@ -51,6 +51,6 @@ func (builder *HorizontalPodAutoscalerBuilder) Update(object client.Object) erro
 	return nil
 }
 
-func (_ *HorizontalPodAutoscalerBuilder) GetPhase() valhallav1alpha1.LifecyclePhase {
+func (*HorizontalPodAutoscalerBuilder) GetPhase() valhallav1alpha1.LifecyclePhase {
 	return valhallav1alpha1.Serving
 }
