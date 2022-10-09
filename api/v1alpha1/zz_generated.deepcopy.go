@@ -125,6 +125,11 @@ func (in *ValhallaSpec) DeepCopyInto(out *ValhallaSpec) {
 		*out = new(int32)
 		**out = **in
 	}
+	if in.MinAvailable != nil {
+		in, out := &in.MinAvailable, &out.MinAvailable
+		*out = new(int32)
+		**out = **in
+	}
 	if in.ThreadsPerPod != nil {
 		in, out := &in.ThreadsPerPod, &out.ThreadsPerPod
 		*out = new(int32)
