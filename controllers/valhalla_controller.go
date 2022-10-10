@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/itayankri/valhalla-operator/internal/resource"
 	"github.com/itayankri/valhalla-operator/internal/status"
@@ -147,14 +148,21 @@ func (r *ValhallaReconciler) initialize(ctx context.Context, instance *valhallav
 	return r.updateValhallaResource(ctx, instance)
 }
 
-func (r *ValhallaReconciler) updateValhallaStatus(
+func (r *ValhallaReconciler) updateValhallaStatusConditions(
 	ctx context.Context,
 	instance *valhallav1alpha1.Valhalla,
 	childResources []runtime.Object,
-) error {
+) (time.Duration, error) {
 	instance.Status.SetConditions(childResources)
-	instance.Status.ObservedGeneration = instance.Generation
-	return r.Client.Status().Update(ctx, instance)
+	err := r.Client.Status().Update(ctx, instance)
+	if err != nil {
+		if errors.IsConflict(err) {
+			r.log.Info("failed to update status because of conflict; requeueing...")
+			return 2 * time.Second, nil
+		}
+		return 0, err
+	}
+	return 0, nil
 }
 
 // logAndRecordOperationResult - helper function to log and record events with message and error
@@ -255,7 +263,9 @@ func (r *ValhallaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	r.updateValhallaStatus(ctx, instance, childResources)
+	if requeueAfter, err := r.updateValhallaStatusConditions(ctx, instance, childResources); err != nil || requeueAfter > 0 {
+		return ctrl.Result{RequeueAfter: requeueAfter}, err
+	}
 
 	if !isInitialized(instance) {
 		err := r.initialize(ctx, instance)
