@@ -23,11 +23,11 @@ import (
 	"strconv"
 
 	"github.com/itayankri/valhalla-operator/internal/resource"
+	"github.com/itayankri/valhalla-operator/internal/status"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -41,6 +41,8 @@ import (
 	valhallav1alpha1 "github.com/itayankri/valhalla-operator/api/v1alpha1"
 )
 
+const finalizerName = "valhalla.itayankri/finalizer"
+
 // ValhallaReconciler reconciles a Valhalla object
 type ValhallaReconciler struct {
 	client.Client
@@ -52,7 +54,7 @@ func NewValhallaReconciler(client client.Client, scheme *runtime.Scheme) *Valhal
 	return &ValhallaReconciler{
 		Client: client,
 		Scheme: scheme,
-		log:    ctrl.Log.WithName("controllers").WithName("Valhalla"),
+		log:    ctrl.Log.WithName("controller").WithName("valhalla"),
 	}
 }
 
@@ -60,12 +62,9 @@ func NewValhallaReconciler(client client.Client, scheme *runtime.Scheme) *Valhal
 // +kubebuilder:rbac:groups="",resources=pods/exec,verbs=create
 // +kubebuilder:rbac:groups="",resources=pods,verbs=update;get;list;watch
 // +kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch;create;update
-// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups="batch",resources=jobs,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups="apps",resources=deployments,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups="autoscaling",resources=horizontalpodautoscalers,verbs=get;list;watch;create;update
-// +kubebuilder:rbac:groups="networking.k8s.io",resources=ingresses,verbs=get;list;watch;create;update
-// +kubebuilder:rbac:groups="",resources=endpoints,verbs=get;watch;list
 // +kubebuilder:rbac:groups=valhalla.itayankri,resources=valhallas,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=valhalla.itayankri,resources=valhallas/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=valhalla.itayankri,resources=valhallas/finalizers,verbs=update
@@ -79,10 +78,25 @@ func (r *ValhallaReconciler) getValhallaInstance(ctx context.Context, namespaced
 	return instance, err
 }
 
+func (r *ValhallaReconciler) updateValhallaResource(ctx context.Context, instance *valhallav1alpha1.Valhalla) error {
+	err := r.Client.Update(ctx, instance)
+	if err != nil {
+		return err
+	}
+
+	instance.Status.ObservedGeneration = instance.Generation
+	return r.Client.Status().Update(ctx, instance)
+}
+
 func (r *ValhallaReconciler) getJob(ctx context.Context, namespacedName types.NamespacedName) (*batchv1.Job, error) {
 	job := &batchv1.Job{}
 	err := r.Client.Get(ctx, namespacedName, job)
 	return job, err
+}
+
+func (r *ValhallaReconciler) initialize(ctx context.Context, instance *valhallav1alpha1.Valhalla) error {
+	controllerutil.AddFinalizer(instance, finalizerName)
+	return r.updateValhallaResource(ctx, instance)
 }
 
 func (r *ValhallaReconciler) updateValhallaStatus(
@@ -141,6 +155,39 @@ func (r *ValhallaReconciler) logOperationResult(
 	}
 }
 
+func (r *ValhallaReconciler) cleanup(ctx context.Context, instance *valhallav1alpha1.Valhalla) error {
+	if controllerutil.ContainsFinalizer(instance, finalizerName) {
+		instance.Status.ObservedGeneration = instance.Generation
+		instance.Status.SetCondition(metav1.Condition{
+			Type:    status.ConditionAvailable,
+			Status:  metav1.ConditionFalse,
+			Reason:  "Cleanup",
+			Message: "Deleting Valhalla resources",
+		})
+
+		err := r.Client.Status().Update(ctx, instance)
+		if err != nil {
+			return err
+		}
+
+		controllerutil.RemoveFinalizer(instance, finalizerName)
+
+		err = r.Client.Update(ctx, instance)
+		if err != nil {
+			return err
+		}
+	}
+
+	instance.Status.ObservedGeneration = instance.Generation
+	err := r.Client.Status().Update(ctx, instance)
+	if errors.IsConflict(err) || errors.IsNotFound(err) {
+		// These errors are ignored. They can happen if the CR was removed
+		// before the status update call is executed.
+		return nil
+	}
+	return err
+}
+
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
@@ -158,31 +205,49 @@ func (r *ValhallaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Return and don't requeue
+			logger.Info("Instance not found")
 			return ctrl.Result{}, nil
 		}
 
 		// Error reading the object - requeue the request.
+		logger.Error(err, "Failed to fetch Valhalla instance")
+		return ctrl.Result{}, err
+	}
+
+	if !isInitialized(instance) {
+		err := r.initialize(ctx, instance)
+		// No need to requeue here, because
+		// the update will trigger reconciliation again
+		logger.Info("Valhalla Instance initialized")
 		return ctrl.Result{}, err
 	}
 
 	if isBeingDeleted(instance) {
+		err := r.cleanup(ctx, instance)
+		if err != nil {
+			logger.Error(err, "Cleanup failed for rerouce: %v/%v", instance.Namespace, instance.Name)
+			return ctrl.Result{}, err
+		}
+
 		return ctrl.Result{}, nil
 	}
 
 	if isPaused(instance) {
 		if instance.Status.Paused {
+			logger.Info("Valhalla operator is paused on resource: %v/%v", instance.Namespace, instance.Name)
 			return ctrl.Result{}, nil
 		}
 		logger.Info(fmt.Sprintf("Pausing Valhalla operator on resource: %v/%v", instance.Namespace, instance.Name))
 		instance.Status.Paused = true
-		instance.Status.ObservedGeneration = instance.Generation
-		err := r.Client.Status().Update(ctx, instance)
+		err := r.updateValhallaResource(ctx, instance)
+		// instance.Status.ObservedGeneration = instance.Generation
+		// err := r.Client.Status().Update(ctx, instance)
 		return ctrl.Result{}, err
 	}
 
 	rawInstanceSpec, err := json.Marshal(instance.Spec)
 	if err != nil {
-		logger.Error(err, "Failed to marshal cluster spec")
+		logger.Error(err, "Failed to marshal Valhalla instance spec")
 	}
 
 	logger.Info(fmt.Sprintf("Reconciling Valhalla instance - phase %d", instance.Status.Phase), "spec", string(rawInstanceSpec))
@@ -198,6 +263,7 @@ func (r *ValhallaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if builder.GetPhase() <= instance.Status.Phase {
 			resource, err := builder.Build()
 			if err != nil {
+				logger.Error(err, "Failed to build resource %v for Valhalla Instance %v/%v", builder, instance.Namespace, instance.Name)
 				return ctrl.Result{}, err
 			}
 
@@ -247,6 +313,10 @@ func (r *ValhallaReconciler) isPhaseComplete(ctx context.Context, instance *valh
 	return false, nil
 }
 
+func isInitialized(instance *valhallav1alpha1.Valhalla) bool {
+	return controllerutil.ContainsFinalizer(instance, finalizerName)
+}
+
 func isBeingDeleted(object metav1.Object) bool {
 	return !object.GetDeletionTimestamp().IsZero()
 }
@@ -273,8 +343,6 @@ func (r *ValhallaReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&appsv1.Deployment{}).
 		Owns(&batchv1.Job{}).
 		Owns(&corev1.Service{}).
-		Owns(&corev1.ConfigMap{}).
-		Owns(&networkingv1.Ingress{}).
 		Owns(&autoscalingv1.HorizontalPodAutoscaler{}).
 		Complete(r)
 }

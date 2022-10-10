@@ -1,10 +1,7 @@
 package status
 
 const (
-	AllProfilesReady         ValhallaConditionType = "AllProfilesReady"
-	ClusterAvailable         ValhallaConditionType = "ClusterAvailable"
-	ReconciliationSuccess    ValhallaConditionType = "ReconciliationSuccess"
-	ReconciliationInProgress ValhallaConditionType = "ReconciliationInProgress"
+	ConditionAvailable                = "Available"
+	ConditionReconciliationSuccess    = "ReconciliationSuccess"
+	ConditionReconciliationInProgress = "ReconciliationInProgress"
 )
-
-type ValhallaConditionType string

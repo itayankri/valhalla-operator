@@ -27,7 +27,7 @@ import (
 
 const (
 	defaultImage             = "valhalla/valhalla:run-latest"
-	OperatorPausedAnnotation = "valhalla/operator.paused"
+	OperatorPausedAnnotation = "valhalla.itayankri/operator.paused"
 )
 
 type LifecyclePhase int32
@@ -112,6 +112,20 @@ type ValhallaStatus struct {
 	Phase LifecyclePhase `json:"phase,omitempty"`
 
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
+}
+
+func (status *ValhallaStatus) SetCondition(condition metav1.Condition) {
+	for i := range status.Conditions {
+		if status.Conditions[i].Type == condition.Type {
+			if status.Conditions[i].Status != condition.Status {
+				status.Conditions[i].LastTransitionTime = metav1.Now()
+			}
+			status.Conditions[i].Status = condition.Status
+			status.Conditions[i].Reason = condition.Reason
+			status.Conditions[i].Message = condition.Message
+			break
+		}
+	}
 }
 
 //+kubebuilder:object:root=true
