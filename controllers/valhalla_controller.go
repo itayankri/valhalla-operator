@@ -115,8 +115,17 @@ func (r *ValhallaReconciler) updateValhallaStatus(
 		instance.Status.Phase = instance.Status.Phase.GetNextPhase()
 	}
 
-	if err = r.Status().Update(ctx, instance); err != nil {
-		ctrl.LoggerFrom(ctx).Error(err, "Failed to update Custom Resource status",
+	if instance.Status.Phase == valhallav1alpha1.Serving {
+		instance.Status.SetCondition(metav1.Condition{
+			Type:    status.ConditionAvailable,
+			Status:  metav1.ConditionTrue,
+			Reason:  "Available",
+			Message: "Valhalla is ready to use",
+		})
+	}
+
+	if err = r.Client.Status().Update(ctx, instance); err != nil {
+		ctrl.LoggerFrom(ctx).Error(err, "Failed to update valhalla resource status",
 			"namespace", instance.Namespace,
 			"name", instance.Name)
 	}
