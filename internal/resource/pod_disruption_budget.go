@@ -3,7 +3,6 @@ package resource
 import (
 	"fmt"
 
-	valhallav1alpha1 "github.com/itayankri/valhalla-operator/api/v1alpha1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -45,8 +44,4 @@ func (builder *PodDisruptionBudgetBuilder) Update(object client.Object) error {
 	}
 
 	return nil
-}
-
-func (*PodDisruptionBudgetBuilder) GetPhase() valhallav1alpha1.LifecyclePhase {
-	return valhallav1alpha1.Serving
 }

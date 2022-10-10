@@ -19,9 +19,11 @@ package v1alpha1
 import (
 	"strings"
 
+	"github.com/itayankri/valhalla-operator/internal/status"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -30,20 +32,31 @@ const (
 	OperatorPausedAnnotation = "valhalla.itayankri/operator.paused"
 )
 
-type LifecyclePhase int32
+// Phase is the current phase of the deployment
+type Phase string
 
 const (
-	Empty       LifecyclePhase = 0
-	MapBuilding LifecyclePhase = 1
-	Serving     LifecyclePhase = 2
-)
+	// PhaseBuildingMap signals that the map building phase is in progress
+	PhaseBuildingMap Phase = "BuildingMap"
 
-func (phase LifecyclePhase) GetNextPhase() LifecyclePhase {
-	if phase == Serving {
-		return Serving
-	}
-	return LifecyclePhase(int32(phase) + 1)
-}
+	// PhaseDeployingWorkers signals that the workers are being deployed
+	PhaseDeployingWorkers Phase = "DeployingWorkers"
+
+	// PhaseWorkersDeployed signals that the resources are successfully deployed
+	PhaseWorkersDeployed Phase = "WorkersDeployed"
+
+	// PhaseDeleting signals that the resources are being removed
+	PhaseDeleting Phase = "Deleting"
+
+	// PhaseDeleted signals that the resources are deleted
+	PhaseDeleted Phase = "Deleted"
+
+	// PhaseError signals that the deployment is in an error state
+	PhaseError Phase = "Error"
+
+	// PhaseEmpty is an uninitialized phase
+	PhaseEmpty Phase = ""
+)
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
@@ -109,9 +122,22 @@ type ValhallaStatus struct {
 	// ObservedGeneration is the latest generation observed by the operator.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 
-	Phase LifecyclePhase `json:"phase,omitempty"`
+	Phase Phase `json:"phase,omitempty"`
 
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
+}
+
+func (valhallaStatus *ValhallaStatus) SetConditions(resources []runtime.Object) {
+	availableCondition := status.AvailableCondition(resources)
+	noWarningsCondition := status.NoWarningsCondition(resources)
+	allReplicasReadyCondition := status.AllReplicasReadyCondition(resources)
+	reconciliationSuccessCondition := status.ReconcileSuccessCondition(metav1.ConditionUnknown, "Initialising", "")
+	valhallaStatus.Conditions = []metav1.Condition{
+		availableCondition,
+		noWarningsCondition,
+		allReplicasReadyCondition,
+		reconciliationSuccessCondition,
+	}
 }
 
 func (status *ValhallaStatus) SetCondition(condition metav1.Condition) {

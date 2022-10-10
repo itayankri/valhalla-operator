@@ -88,6 +88,60 @@ func (r *ValhallaReconciler) updateValhallaResource(ctx context.Context, instanc
 	return r.Client.Status().Update(ctx, instance)
 }
 
+func (r *ValhallaReconciler) getChildResources(ctx context.Context, instance *valhallav1alpha1.Valhalla) ([]runtime.Object, error) {
+	pvc := &corev1.PersistentVolumeClaim{}
+	if err := r.Client.Get(ctx, types.NamespacedName{
+		Name:      instance.ChildResourceName(resource.PersistentVolumeClaimSuffix),
+		Namespace: instance.Namespace,
+	}, pvc); err != nil && !errors.IsNotFound(err) {
+		return nil, err
+	} else if errors.IsNotFound(err) {
+		pvc = nil
+	}
+
+	job := &batchv1.Job{}
+	if err := r.Client.Get(ctx, types.NamespacedName{
+		Name:      instance.ChildResourceName(resource.JobSuffix),
+		Namespace: instance.Namespace,
+	}, job); err != nil && !errors.IsNotFound(err) {
+		return nil, err
+	} else if errors.IsNotFound(err) {
+		job = nil
+	}
+
+	deployment := &appsv1.Deployment{}
+	if err := r.Client.Get(ctx, types.NamespacedName{
+		Name:      instance.ChildResourceName(resource.DeploymentSuffix),
+		Namespace: instance.Namespace,
+	}, deployment); err != nil && !errors.IsNotFound(err) {
+		return nil, err
+	} else if errors.IsNotFound(err) {
+		deployment = nil
+	}
+
+	hpa := &autoscalingv1.HorizontalPodAutoscaler{}
+	if err := r.Client.Get(ctx, types.NamespacedName{
+		Name:      instance.ChildResourceName(resource.HorizontalPodAutoscalerSuffix),
+		Namespace: instance.Namespace,
+	}, hpa); err != nil && !errors.IsNotFound(err) {
+		return nil, err
+	} else if errors.IsNotFound(err) {
+		hpa = nil
+	}
+
+	service := &corev1.Service{}
+	if err := r.Client.Get(ctx, types.NamespacedName{
+		Name:      instance.ChildResourceName(resource.ServiceSuffix),
+		Namespace: instance.Namespace,
+	}, service); err != nil && !errors.IsNotFound(err) {
+		return nil, err
+	} else if errors.IsNotFound(err) {
+		service = nil
+	}
+
+	return []runtime.Object{pvc, job, deployment, hpa, service}, nil
+}
+
 func (r *ValhallaReconciler) getJob(ctx context.Context, namespacedName types.NamespacedName) (*batchv1.Job, error) {
 	job := &batchv1.Job{}
 	err := r.Client.Get(ctx, namespacedName, job)
@@ -223,6 +277,12 @@ func (r *ValhallaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
+	childResource, err := r.getChildResources(ctx, instance)
+	if err != nil {
+		logger.Error(err, "Failed to fetch child resources", instance.Namespace, instance.Name)
+		return ctrl.Result{}, err
+	}
+
 	if !isInitialized(instance) {
 		err := r.initialize(ctx, instance)
 		// No need to requeue here, because
@@ -266,7 +326,7 @@ func (r *ValhallaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		Scheme:   r.Scheme,
 	}
 
-	builders := resourceBuilder.ResourceBuilders(instance.Status.Phase)
+	builders := resourceBuilder.ResourceBuilders()
 
 	for _, builder := range builders {
 		if builder.GetPhase() <= instance.Status.Phase {

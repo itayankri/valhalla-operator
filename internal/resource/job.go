@@ -3,7 +3,6 @@ package resource
 import (
 	"fmt"
 
-	valhallav1alpha1 "github.com/itayankri/valhalla-operator/api/v1alpha1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -91,8 +90,4 @@ func (builder *JobBuilder) Update(object client.Object) error {
 	}
 
 	return nil
-}
-
-func (*JobBuilder) GetPhase() valhallav1alpha1.LifecyclePhase {
-	return valhallav1alpha1.MapBuilding
 }
