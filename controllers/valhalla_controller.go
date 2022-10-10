@@ -142,12 +142,6 @@ func (r *ValhallaReconciler) getChildResources(ctx context.Context, instance *va
 	return []runtime.Object{pvc, job, deployment, hpa, service}, nil
 }
 
-func (r *ValhallaReconciler) getJob(ctx context.Context, namespacedName types.NamespacedName) (*batchv1.Job, error) {
-	job := &batchv1.Job{}
-	err := r.Client.Get(ctx, namespacedName, job)
-	return job, err
-}
-
 func (r *ValhallaReconciler) initialize(ctx context.Context, instance *valhallav1alpha1.Valhalla) error {
 	controllerutil.AddFinalizer(instance, finalizerName)
 	return r.updateValhallaResource(ctx, instance)
@@ -156,33 +150,11 @@ func (r *ValhallaReconciler) initialize(ctx context.Context, instance *valhallav
 func (r *ValhallaReconciler) updateValhallaStatus(
 	ctx context.Context,
 	instance *valhallav1alpha1.Valhalla,
-) {
-	phaseCompleted, err := r.isPhaseComplete(ctx, instance)
-	if err != nil {
-		ctrl.LoggerFrom(ctx).Error(err, "Failed to fetch map builder job",
-			"namespace", instance.Namespace,
-			"name", instance.Name)
-		return
-	}
-
-	if phaseCompleted {
-		instance.Status.Phase = instance.Status.Phase.GetNextPhase()
-	}
-
-	if instance.Status.Phase == valhallav1alpha1.Serving {
-		instance.Status.SetCondition(metav1.Condition{
-			Type:    status.ConditionAvailable,
-			Status:  metav1.ConditionTrue,
-			Reason:  "Available",
-			Message: "Valhalla is ready to use",
-		})
-	}
-
-	if err = r.Client.Status().Update(ctx, instance); err != nil {
-		ctrl.LoggerFrom(ctx).Error(err, "Failed to update valhalla resource status",
-			"namespace", instance.Namespace,
-			"name", instance.Name)
-	}
+	childResources []runtime.Object,
+) error {
+	instance.Status.SetConditions(childResources)
+	instance.Status.ObservedGeneration = instance.Generation
+	return r.Client.Status().Update(ctx, instance)
 }
 
 // logAndRecordOperationResult - helper function to log and record events with message and error
@@ -277,11 +249,13 @@ func (r *ValhallaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	childResource, err := r.getChildResources(ctx, instance)
+	childResources, err := r.getChildResources(ctx, instance)
 	if err != nil {
 		logger.Error(err, "Failed to fetch child resources", instance.Namespace, instance.Name)
 		return ctrl.Result{}, err
 	}
+
+	r.updateValhallaStatus(ctx, instance, childResources)
 
 	if !isInitialized(instance) {
 		err := r.initialize(ctx, instance)
@@ -319,7 +293,7 @@ func (r *ValhallaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		logger.Error(err, "Failed to marshal Valhalla instance spec")
 	}
 
-	logger.Info(fmt.Sprintf("Reconciling Valhalla instance - phase %d", instance.Status.Phase), "spec", string(rawInstanceSpec))
+	logger.Info("Reconciling Valhalla instance", "spec", string(rawInstanceSpec))
 
 	resourceBuilder := resource.ValhallaResourceBuilder{
 		Instance: instance,
@@ -329,7 +303,7 @@ func (r *ValhallaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	builders := resourceBuilder.ResourceBuilders()
 
 	for _, builder := range builders {
-		if builder.GetPhase() <= instance.Status.Phase {
+		if builder.ShouldDeploy(childResources) {
 			resource, err := builder.Build()
 			if err != nil {
 				logger.Error(err, "Failed to build resource %v for Valhalla Instance %v/%v", builder, instance.Namespace, instance.Name)
@@ -346,40 +320,13 @@ func (r *ValhallaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			})
 			r.logOperationResult(logger, instance, resource, operationResult, err)
 			if err != nil {
-				r.updateValhallaStatus(ctx, instance)
 				return ctrl.Result{}, err
 			}
 		}
 	}
 
-	r.updateValhallaStatus(ctx, instance)
 	logger.Info("Finished reconciling")
-
 	return ctrl.Result{}, nil
-}
-
-func (r *ValhallaReconciler) isPhaseComplete(ctx context.Context, instance *valhallav1alpha1.Valhalla) (bool, error) {
-	if instance.Status.Phase == valhallav1alpha1.Empty {
-		return true, nil
-	}
-
-	if instance.Status.Phase == valhallav1alpha1.MapBuilding {
-		job, err := r.getJob(ctx, types.NamespacedName{
-			Name:      instance.ChildResourceName("builder"),
-			Namespace: instance.Namespace,
-		})
-		if err != nil {
-			return false, err
-		}
-
-		for _, condition := range job.Status.Conditions {
-			if condition.Type == "Complete" {
-				return true, nil
-			}
-		}
-	}
-
-	return false, nil
 }
 
 func isInitialized(instance *valhallav1alpha1.Valhalla) bool {
@@ -409,8 +356,9 @@ func isPaused(object metav1.Object) bool {
 func (r *ValhallaReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&valhallav1alpha1.Valhalla{}).
-		Owns(&appsv1.Deployment{}).
+		Owns(&corev1.PersistentVolumeClaim{}).
 		Owns(&batchv1.Job{}).
+		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.Service{}).
 		Owns(&autoscalingv1.HorizontalPodAutoscaler{}).
 		Complete(r)

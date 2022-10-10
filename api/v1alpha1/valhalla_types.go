@@ -129,12 +129,10 @@ type ValhallaStatus struct {
 
 func (valhallaStatus *ValhallaStatus) SetConditions(resources []runtime.Object) {
 	availableCondition := status.AvailableCondition(resources)
-	noWarningsCondition := status.NoWarningsCondition(resources)
 	allReplicasReadyCondition := status.AllReplicasReadyCondition(resources)
 	reconciliationSuccessCondition := status.ReconcileSuccessCondition(metav1.ConditionUnknown, "Initialising", "")
 	valhallaStatus.Conditions = []metav1.Condition{
 		availableCondition,
-		noWarningsCondition,
 		allReplicasReadyCondition,
 		reconciliationSuccessCondition,
 	}

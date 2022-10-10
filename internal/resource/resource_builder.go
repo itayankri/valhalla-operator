@@ -9,6 +9,7 @@ import (
 type ResourceBuilder interface {
 	Build() (client.Object, error)
 	Update(client.Object) error
+	ShouldDeploy(resources []runtime.Object) bool
 }
 
 type ValhallaResourceBuilder struct {
@@ -18,11 +19,11 @@ type ValhallaResourceBuilder struct {
 
 func (builder *ValhallaResourceBuilder) ResourceBuilders() []ResourceBuilder {
 	builders := []ResourceBuilder{
+		builder.PersistentVolumeClaim(),
+		builder.Job(),
 		builder.Deployment(),
 		builder.Service(),
-		builder.Job(),
 		builder.HorizontalPodAutoscaler(),
-		builder.PersistentVolumeClaim(),
 	}
 	return builders
 }

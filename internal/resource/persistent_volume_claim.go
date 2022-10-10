@@ -6,6 +6,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -48,4 +49,8 @@ func (builder *PersistentVolumeClaimBuilder) Update(object client.Object) error 
 	}
 
 	return nil
+}
+
+func (*PersistentVolumeClaimBuilder) ShouldDeploy(resources []runtime.Object) bool {
+	return true
 }
