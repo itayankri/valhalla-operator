@@ -1,2 +1,2 @@
-# valhalla-operator
-A kubernetes operator for Valhalla routing engine
+# Valhalla Kubernetes Operator
+A kubernetes operator to deploy and manage [Valhalla](https://valhalla.readthedocs.io/en/latest/valhalla-intro/) routing engine. This operator efficiently deploys Valhalla instances by sharing map data accross all pods of a specific instance.
