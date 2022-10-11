@@ -16,11 +16,16 @@ const (
 	ConditionAllReplicasReady      = "AllReplicasReady"
 )
 
-func AvailableCondition(resources []runtime.Object) metav1.Condition {
+func AvailableCondition(resources []runtime.Object, old *metav1.Condition) metav1.Condition {
 	condition := metav1.Condition{
-		Type:    ConditionAllReplicasReady,
+		Type:    ConditionAvailable,
 		Status:  metav1.ConditionFalse,
+		Reason:  "DeploymentUnavailable",
 		Message: "Deployment does not have minimum availability",
+	}
+
+	if old != nil {
+		condition.LastTransitionTime = old.LastTransitionTime
 	}
 
 	for _, resource := range resources {
@@ -30,6 +35,7 @@ func AvailableCondition(resources []runtime.Object) metav1.Condition {
 					if cond.Type == appsv1.DeploymentAvailable && cond.Status == corev1.ConditionTrue {
 						condition.Status = metav1.ConditionTrue
 						condition.Message = cond.Message
+						condition.Reason = "Available"
 					}
 				}
 			}
@@ -37,19 +43,39 @@ func AvailableCondition(resources []runtime.Object) metav1.Condition {
 		}
 	}
 
+	if old == nil || old.Status != condition.Status {
+		condition.LastTransitionTime = metav1.Time{
+			Time: time.Now(),
+		}
+	}
+
 	return condition
 }
 
-func AllReplicasReadyCondition(resources []runtime.Object) metav1.Condition {
+func AllReplicasReadyCondition(resources []runtime.Object, old *metav1.Condition) metav1.Condition {
 	condition := metav1.Condition{
 		Type:    ConditionAllReplicasReady,
 		Status:  metav1.ConditionFalse,
+		Reason:  "NotAllReplicasReady",
 		Message: "One or more pods are not ready",
 	}
+
+	if old != nil {
+		condition.LastTransitionTime = old.LastTransitionTime
+	}
+
 	if DoAllReplicasReady(resources) {
 		condition.Status = metav1.ConditionTrue
 		condition.Message = "All pods are ready"
+		condition.Reason = "AllReplicasReady"
 	}
+
+	if old == nil || old.Status != condition.Status {
+		condition.LastTransitionTime = metav1.Time{
+			Time: time.Now(),
+		}
+	}
+
 	return condition
 }
 

@@ -263,6 +263,13 @@ func (r *ValhallaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
+	// TODO: Reomve after done debugging
+	rawChildResources, err := json.Marshal(childResources)
+	if err != nil {
+		logger.Error(err, "Failed to marshal Valhalla instance spec")
+	}
+	logger.Info("Child resources", "Resources", rawChildResources)
+
 	if requeueAfter, err := r.updateValhallaStatusConditions(ctx, instance, childResources); err != nil || requeueAfter > 0 {
 		return ctrl.Result{RequeueAfter: requeueAfter}, err
 	}

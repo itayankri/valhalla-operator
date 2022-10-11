@@ -17,6 +17,8 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/itayankri/valhalla-operator/internal/status"
@@ -128,14 +130,38 @@ type ValhallaStatus struct {
 }
 
 func (valhallaStatus *ValhallaStatus) SetConditions(resources []runtime.Object) {
-	availableCondition := status.AvailableCondition(resources)
-	allReplicasReadyCondition := status.AllReplicasReadyCondition(resources)
-	reconciliationSuccessCondition := status.ReconcileSuccessCondition(metav1.ConditionUnknown, "Initialising", "")
+	var oldAvailableCondition *metav1.Condition
+	var oldAllReplicasReadyCondition *metav1.Condition
+	var oldReconciliationSuccessCondition *metav1.Condition
+
+	for _, condition := range valhallaStatus.Conditions {
+		switch condition.Type {
+		case status.ConditionAllReplicasReady:
+			oldAllReplicasReadyCondition = condition.DeepCopy()
+		case status.ConditionAvailable:
+			oldAvailableCondition = condition.DeepCopy()
+		case status.ConditionReconciliationSuccess:
+			oldReconciliationSuccessCondition = condition.DeepCopy()
+		}
+	}
+
+	var reconciliationSuccessCondition metav1.Condition
+	if oldReconciliationSuccessCondition != nil {
+		reconciliationSuccessCondition = *oldReconciliationSuccessCondition
+	} else {
+		reconciliationSuccessCondition = status.ReconcileSuccessCondition(metav1.ConditionUnknown, "Initialising", "")
+	}
+
+	availableCondition := status.AvailableCondition(resources, oldAvailableCondition)
+	allReplicasReadyCondition := status.AllReplicasReadyCondition(resources, oldAllReplicasReadyCondition)
 	valhallaStatus.Conditions = []metav1.Condition{
 		availableCondition,
 		allReplicasReadyCondition,
 		reconciliationSuccessCondition,
 	}
+	// TODO: Reomve after done debugging
+	rawConditions, _ := json.Marshal(valhallaStatus.Conditions)
+	fmt.Println("Child conditions", rawConditions)
 }
 
 func (status *ValhallaStatus) SetCondition(condition metav1.Condition) {
