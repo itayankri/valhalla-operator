@@ -165,6 +165,29 @@ func (r *ValhallaReconciler) updateValhallaStatusConditions(
 	return 0, nil
 }
 
+func (r *ValhallaReconciler) setReconciliationSuccess(
+	ctx context.Context,
+	instance *valhallav1alpha1.Valhalla,
+	conditionStatus metav1.ConditionStatus,
+	reason,
+	msg string,
+) {
+	instance.Status.SetCondition(metav1.Condition{
+		Type:    status.ConditionReconciliationSuccess,
+		Status:  conditionStatus,
+		Reason:  reason,
+		Message: msg,
+		LastTransitionTime: metav1.Time{
+			Time: time.Now(),
+		},
+	})
+	if writerErr := r.Status().Update(ctx, instance); writerErr != nil {
+		ctrl.LoggerFrom(ctx).Error(writerErr, "Failed to update Custom Resource status",
+			"namespace", instance.Namespace,
+			"name", instance.Name)
+	}
+}
+
 // logAndRecordOperationResult - helper function to log and record events with message and error
 // it logs and records 'updated' and 'created' OperationResult, and ignores OperationResult 'unchanged'
 func (r *ValhallaReconciler) logOperationResult(
@@ -260,15 +283,9 @@ func (r *ValhallaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	childResources, err := r.getChildResources(ctx, instance)
 	if err != nil {
 		logger.Error(err, "Failed to fetch child resources", instance.Namespace, instance.Name)
+		r.setReconciliationSuccess(ctx, instance, metav1.ConditionFalse, "FailedToFetchChildResources", err.Error())
 		return ctrl.Result{}, err
 	}
-
-	// TODO: Reomve after done debugging
-	rawChildResources, err := json.Marshal(childResources)
-	if err != nil {
-		logger.Error(err, "Failed to marshal Valhalla instance spec")
-	}
-	logger.Info("Child resources", "Resources", rawChildResources)
 
 	if requeueAfter, err := r.updateValhallaStatusConditions(ctx, instance, childResources); err != nil || requeueAfter > 0 {
 		return ctrl.Result{RequeueAfter: requeueAfter}, err
@@ -324,6 +341,7 @@ func (r *ValhallaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			resource, err := builder.Build()
 			if err != nil {
 				logger.Error(err, "Failed to build resource %v for Valhalla Instance %v/%v", builder, instance.Namespace, instance.Name)
+				r.setReconciliationSuccess(ctx, instance, metav1.ConditionFalse, "FailedToBuildChildResource", err.Error())
 				return ctrl.Result{}, err
 			}
 
@@ -337,11 +355,13 @@ func (r *ValhallaReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			})
 			r.logOperationResult(logger, instance, resource, operationResult, err)
 			if err != nil {
+				r.setReconciliationSuccess(ctx, instance, metav1.ConditionFalse, "Error", err.Error())
 				return ctrl.Result{}, err
 			}
 		}
 	}
 
+	r.setReconciliationSuccess(ctx, instance, metav1.ConditionTrue, "Success", "Finished reconciling")
 	logger.Info("Finished reconciling")
 	return ctrl.Result{}, nil
 }
