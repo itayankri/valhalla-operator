@@ -1,7 +1,7 @@
 apiVersion: valhalla.itayankri/v1alpha1
 kind: Valhalla
 metadata:
-  name: simple-example
+  name: example
 spec:
   pbfUrl: https://download.geofabrik.de/asia/israel-and-palestine-latest.osm.pbf
   minReplicas: 1
