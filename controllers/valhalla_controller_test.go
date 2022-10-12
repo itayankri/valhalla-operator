@@ -9,6 +9,7 @@ import (
 	"github.com/itayankri/valhalla-operator/internal/status"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -63,39 +64,23 @@ var _ = Describe("ValhallaController", func() {
 		})
 
 		It("Should skip valhalla instance if pause reconciliation annotation is set to true", func() {
-			maxReplicas := int32(10)
+			minReplicas := int32(2)
 			Expect(updateWithRetry(instance, func(v *valhallav1alpha1.Valhalla) {
 				v.SetAnnotations(map[string]string{"valhalla.itayankri/operator.paused": "true"})
-				v.Spec.MaxReplicas = &maxReplicas
+				v.Spec.MinReplicas = &minReplicas
 			})).To(Succeed())
 
-			Consistently(func() *int32 {
-				instanceCreated := valhallav1alpha1.Valhalla{}
-				if err := k8sClient.Get(
-					ctx,
-					types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace},
-					&instanceCreated,
-				); err != nil {
-					return nil
-				}
-				return instanceCreated.Spec.MaxReplicas
-			}, 10*time.Second).Should(Equal(&maxReplicas))
+			Consistently(func() int32 {
+				return *hpa(ctx, instance, "").Spec.MinReplicas
+			}, 10*time.Second).Should(Equal(*instance.Spec.MinReplicas))
 
 			Expect(updateWithRetry(instance, func(v *valhallav1alpha1.Valhalla) {
 				v.SetAnnotations(map[string]string{"valhalla.itayankri/operator.paused": "false"})
 			})).To(Succeed())
 
-			Consistently(func() *int32 {
-				instanceCreated := valhallav1alpha1.Valhalla{}
-				if err := k8sClient.Get(
-					ctx,
-					types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace},
-					&instanceCreated,
-				); err != nil {
-					return nil
-				}
-				return instanceCreated.Spec.MaxReplicas
-			}, 10*time.Second).Should(Equal(nil))
+			Consistently(func() int32 {
+				return *hpa(ctx, instance, "").Spec.MinReplicas
+			}, 30*time.Second).Should(Equal(nil))
 		})
 	})
 })
@@ -103,14 +88,16 @@ var _ = Describe("ValhallaController", func() {
 func generateValhallaCluster() *valhallav1alpha1.Valhalla {
 	storage := resource.MustParse("10Mi")
 	image := "itayankri/valhalla:latest"
+	minReplicas := int32(1)
 	valhalla := &valhallav1alpha1.Valhalla{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "valhalla-pause-reconcile",
+			Name:      "pause-reconcile",
 			Namespace: "default",
 		},
 		Spec: valhallav1alpha1.ValhallaSpec{
-			PBFURL: "https://download.geofabrik.de/europe/andorra-latest.osm.pbf",
-			Image:  &image,
+			PBFURL:      "https://download.geofabrik.de/australia-oceania/marshall-islands-latest.osm.pbf",
+			Image:       &image,
+			MinReplicas: &minReplicas,
 			Persistence: valhallav1alpha1.PersistenceSpec{
 				StorageClassName: "nfs-csi",
 				Storage:          &storage,
@@ -140,4 +127,20 @@ func waitForValhallaCreation(ctx context.Context, instance *valhallav1alpha1.Val
 		return "not ready"
 
 	}, ClusterCreationTimeout, 1*time.Second).Should(Equal("ready"))
+}
+
+func hpa(ctx context.Context, v *valhallav1alpha1.Valhalla, hpaName string) autoscalingv1.HorizontalPodAutoscaler {
+	name := v.ChildResourceName(hpaName)
+	hpa := autoscalingv1.HorizontalPodAutoscaler{}
+	EventuallyWithOffset(1, func() error {
+		if err := k8sClient.Get(
+			ctx,
+			types.NamespacedName{Name: name, Namespace: v.Namespace},
+			&hpa,
+		); err != nil {
+			return err
+		}
+		return nil
+	}, 10).Should(Succeed())
+	return hpa
 }

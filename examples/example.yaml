@@ -3,7 +3,7 @@ kind: Valhalla
 metadata:
   name: example
 spec:
-  pbfUrl: https://download.geofabrik.de/europe/andorra-latest.osm.pbf
+  pbfUrl: https://download.geofabrik.de/australia-oceania/marshall-islands-latest.osm.pbf
   minReplicas: 1
   maxReplicas: 3
   resources:
