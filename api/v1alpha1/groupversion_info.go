@@ -15,8 +15,8 @@ limitations under the License.
 */
 
 // Package v1alpha1 contains API Schema definitions for the valhalla v1alpha1 API group
-//+kubebuilder:object:generate=true
-//+groupName=valhalla.itayankri
+// +kubebuilder:object:generate=true
+// +groupName=valhalla.itayankri
 package v1alpha1
 
 import (
