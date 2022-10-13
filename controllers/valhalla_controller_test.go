@@ -28,16 +28,28 @@ var instance *valhallav1alpha1.Valhalla
 var defaultNamespace = "default"
 
 var _ = Describe("ValhallaController", func() {
-	Context("Service configurations", func() {
-
-	})
-
 	Context("Resource requirements configurations", func() {
+		AfterEach(func() {
+			Expect(k8sClient.Delete(ctx, instance)).To(Succeed())
+		})
 
-	})
-
-	Context("Persistence configurations", func() {
-
+		It("uses resource requirements from instance spec when provided", func() {
+			instance = generateValhallaCluster("resource-requirements-config")
+			expectedResources := corev1.ResourceRequirements{
+				Limits: map[corev1.ResourceName]resource.Quantity{
+					corev1.ResourceMemory: resource.MustParse("4Gi"),
+				},
+				Requests: map[corev1.ResourceName]resource.Quantity{
+					corev1.ResourceMemory: resource.MustParse("4Gi"),
+				},
+			}
+			instance.Spec.Resources = &expectedResources
+			Expect(k8sClient.Create(ctx, instance)).To(Succeed())
+			waitForValhallaDeployment(ctx, instance, k8sClient)
+			deployment := deployment(ctx, instance, "")
+			actualResources := deployment.Spec.Template.Spec.Containers[0].Resources
+			Expect(actualResources).To(Equal(expectedResources))
+		})
 	})
 
 	Context("Custom Resource updates", func() {
