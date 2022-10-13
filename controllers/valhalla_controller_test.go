@@ -14,21 +14,16 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
-	ClusterCreationTimeout = 10 * 60 * time.Second
 	ClusterDeletionTimeout = 5 * time.Second
+	MapBuildingTimeout     = 2 * 60 * time.Second
 )
 
 var _ = Describe("ValhallaController", func() {
-	var (
-		instance *valhallav1alpha1.Valhalla
-		// defaultNamespace = "default"
-		// defaultImage     = "itayankri/valhalla-operator:latest"
-	)
-
 	Context("Service configurations", func() {
 
 	})
@@ -49,15 +44,47 @@ var _ = Describe("ValhallaController", func() {
 
 	})
 
-	Context("CR ReconcileSuccess condition", func() {
+	Context("Valhalla CR ReconcileSuccess condition", func() {
+		var instance *valhallav1alpha1.Valhalla
+		BeforeEach(func() {
+			instance = generateValhallaCluster("reconcile-success-condition")
+		})
 
+		AfterEach(func() {
+			Expect(k8sClient.Delete(ctx, instance)).To(Succeed())
+		})
+
+		It("Should keep ReconcileSuccess condition updated", func() {
+			By("setting to False when spec is not valid", func() {
+				// It is impossible to create a deployment with -1 replicas. Thus we expect reconcilication to fail.
+				instance.Spec.MinReplicas = pointer.Int32Ptr(-1)
+				Expect(k8sClient.Create(ctx, instance)).To(Succeed())
+				waitForValhallaCreation(ctx, instance, k8sClient)
+
+				Eventually(func() metav1.ConditionStatus {
+					valhalla := &valhallav1alpha1.Valhalla{}
+					Expect(k8sClient.Get(ctx, types.NamespacedName{
+						Name:      instance.Name,
+						Namespace: instance.Namespace,
+					}, valhalla)).To(Succeed())
+
+					for _, condition := range valhalla.Status.Conditions {
+						if condition.Type == status.ConditionReconciliationSuccess {
+							return condition.Status
+						}
+					}
+					return metav1.ConditionUnknown
+				}, 60*time.Second).Should(Equal(metav1.ConditionFalse))
+			})
+		})
 	})
 
 	Context("Pause reconciliation", func() {
+		var instance *valhallav1alpha1.Valhalla
 		BeforeEach(func() {
-			instance = generateValhallaCluster()
+			instance = generateValhallaCluster("pause-reconcile")
 			Expect(k8sClient.Create(ctx, instance)).To(Succeed())
-			waitForValhallaCreation(ctx, instance, k8sClient)
+			waitForValhallaDeployment(ctx, instance, k8sClient)
 		})
 
 		AfterEach(func() {
@@ -74,7 +101,7 @@ var _ = Describe("ValhallaController", func() {
 
 			Eventually(func() int32 {
 				return *hpa(ctx, instance, "").Spec.MinReplicas
-			}, 10*time.Second).Should(Equal(originalMinReplicas))
+			}, MapBuildingTimeout).Should(Equal(originalMinReplicas))
 
 			Expect(updateWithRetry(instance, func(v *valhallav1alpha1.Valhalla) {
 				v.SetAnnotations(map[string]string{"valhalla.itayankri/operator.paused": "false"})
@@ -87,14 +114,14 @@ var _ = Describe("ValhallaController", func() {
 	})
 })
 
-func generateValhallaCluster() *valhallav1alpha1.Valhalla {
+func generateValhallaCluster(name string) *valhallav1alpha1.Valhalla {
 	storage := resource.MustParse("10Mi")
 	image := "itayankri/valhalla:latest"
 	minReplicas := int32(1)
 	maxReplicas := int32(3)
 	valhalla := &valhallav1alpha1.Valhalla{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "pause-reconcile",
+			Name:      name,
 			Namespace: "default",
 		},
 		Spec: valhallav1alpha1.ValhallaSpec{
@@ -132,6 +159,26 @@ func waitForValhallaCreation(ctx context.Context, instance *valhallav1alpha1.Val
 			return fmt.Sprintf("%v+", err)
 		}
 
+		if len(instanceCreated.Status.Conditions) == 0 {
+			return "not ready"
+		}
+
+		return "ready"
+
+	}, MapBuildingTimeout, 1*time.Second).Should(Equal("ready"))
+}
+
+func waitForValhallaDeployment(ctx context.Context, instance *valhallav1alpha1.Valhalla, client client.Client) {
+	EventuallyWithOffset(1, func() string {
+		instanceCreated := valhallav1alpha1.Valhalla{}
+		if err := k8sClient.Get(
+			ctx,
+			types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace},
+			&instanceCreated,
+		); err != nil {
+			return fmt.Sprintf("%v+", err)
+		}
+
 		for _, condition := range instanceCreated.Status.Conditions {
 			if condition.Type == status.ConditionAvailable && condition.Status == metav1.ConditionTrue {
 				return "ready"
@@ -140,7 +187,7 @@ func waitForValhallaCreation(ctx context.Context, instance *valhallav1alpha1.Val
 
 		return "not ready"
 
-	}, ClusterCreationTimeout, 1*time.Second).Should(Equal("ready"))
+	}, MapBuildingTimeout, 1*time.Second).Should(Equal("ready"))
 }
 
 func hpa(ctx context.Context, v *valhallav1alpha1.Valhalla, hpaName string) autoscalingv1.HorizontalPodAutoscaler {
@@ -155,6 +202,6 @@ func hpa(ctx context.Context, v *valhallav1alpha1.Valhalla, hpaName string) auto
 			return err
 		}
 		return nil
-	}, 10).Should(Succeed())
+	}, MapBuildingTimeout).Should(Succeed())
 	return hpa
 }
