@@ -17,5 +17,7 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
     - name: Run tests
       run: ls -al; make unit-test
