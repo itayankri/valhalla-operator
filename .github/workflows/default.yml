@@ -20,4 +20,32 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
     - name: Run tests
-      run: ls -al; make unit-test
+      run: make unit-test
+
+  e2e-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+    - name: Run tests
+      run: |
+        export GOPATH=$HOME/go
+        export PATH=$PATH:$GOPATH/bin
+        make install-tools
+        kind create cluster --name demo --config examples/kind-config.yaml
+        kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/nfs-provisioner/nfs-server.yaml
+        helm repo add csi-driver-nfs https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+        helm install csi-driver-nfs csi-driver-nfs/csi-driver-nfs --namespace kube-system --version v3.1.0
+        kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/storageclass-nfs.yaml
+        make install deploy
+        make unit-test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
