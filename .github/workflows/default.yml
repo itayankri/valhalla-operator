@@ -23,7 +23,7 @@ jobs:
       run: make unit-test
 
   e2e-tests:
-    name: Unit tests
+    name: E2E tests
     runs-on: ubuntu-latest
     steps:
     - name: Install Go
