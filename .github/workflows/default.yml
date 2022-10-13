@@ -1,4 +1,4 @@
-name: Test | Build | Publish
+name: Default
 
 on:
   pull_request:
@@ -18,4 +18,4 @@ jobs:
       with:
         go-version: ${{ env.GO_VERSION }}
     - name: Run tests
-      run: make unit-test
+      run: ls -al; make unit-test
