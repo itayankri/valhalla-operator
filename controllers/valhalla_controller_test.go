@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -65,22 +66,23 @@ var _ = Describe("ValhallaController", func() {
 
 		It("Should skip valhalla instance if pause reconciliation annotation is set to true", func() {
 			minReplicas := int32(2)
+			originalMinReplicas := *instance.Spec.MinReplicas
 			Expect(updateWithRetry(instance, func(v *valhallav1alpha1.Valhalla) {
 				v.SetAnnotations(map[string]string{"valhalla.itayankri/operator.paused": "true"})
 				v.Spec.MinReplicas = &minReplicas
 			})).To(Succeed())
 
-			Consistently(func() int32 {
+			Eventually(func() int32 {
 				return *hpa(ctx, instance, "").Spec.MinReplicas
-			}, 10*time.Second).Should(Equal(*instance.Spec.MinReplicas))
+			}, 10*time.Second).Should(Equal(originalMinReplicas))
 
 			Expect(updateWithRetry(instance, func(v *valhallav1alpha1.Valhalla) {
 				v.SetAnnotations(map[string]string{"valhalla.itayankri/operator.paused": "false"})
 			})).To(Succeed())
 
-			Consistently(func() int32 {
+			Eventually(func() int32 {
 				return *hpa(ctx, instance, "").Spec.MinReplicas
-			}, 30*time.Second).Should(Equal(nil))
+			}, 10*time.Second).Should(Equal(minReplicas))
 		})
 	})
 })
@@ -89,6 +91,7 @@ func generateValhallaCluster() *valhallav1alpha1.Valhalla {
 	storage := resource.MustParse("10Mi")
 	image := "itayankri/valhalla:latest"
 	minReplicas := int32(1)
+	maxReplicas := int32(3)
 	valhalla := &valhallav1alpha1.Valhalla{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "pause-reconcile",
@@ -98,9 +101,20 @@ func generateValhallaCluster() *valhallav1alpha1.Valhalla {
 			PBFURL:      "https://download.geofabrik.de/australia-oceania/marshall-islands-latest.osm.pbf",
 			Image:       &image,
 			MinReplicas: &minReplicas,
+			MaxReplicas: &maxReplicas,
 			Persistence: valhallav1alpha1.PersistenceSpec{
 				StorageClassName: "nfs-csi",
 				Storage:          &storage,
+			},
+			Resources: &corev1.ResourceRequirements{
+				Limits: corev1.ResourceList{
+					corev1.ResourceCPU:    resource.MustParse("100m"),
+					corev1.ResourceMemory: resource.MustParse("100Mi"),
+				},
+				Requests: corev1.ResourceList{
+					corev1.ResourceCPU:    resource.MustParse("100m"),
+					corev1.ResourceMemory: resource.MustParse("100Mi"),
+				},
 			},
 		},
 	}
