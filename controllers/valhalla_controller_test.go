@@ -41,7 +41,42 @@ var _ = Describe("ValhallaController", func() {
 	})
 
 	Context("Custom Resource updates", func() {
+		BeforeEach(func() {
+			instance = generateValhallaCluster("custom-resource-updates")
+			Expect(k8sClient.Create(ctx, instance)).To(Succeed())
+			waitForValhallaDeployment(ctx, instance, k8sClient)
+		})
 
+		AfterEach(func() {
+			Expect(k8sClient.Delete(ctx, instance)).To(Succeed())
+		})
+
+		It("Should update deployment CPU and memory requests and limits", func() {
+			var resourceRequirements corev1.ResourceRequirements
+			expectedRequirements := &corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceCPU:    resource.MustParse("200m"),
+					corev1.ResourceMemory: resource.MustParse("200Mi"),
+				},
+				Limits: corev1.ResourceList{
+					corev1.ResourceCPU:    resource.MustParse("200m"),
+					corev1.ResourceMemory: resource.MustParse("200Mi"),
+				},
+			}
+
+			Expect(updateWithRetry(instance, func(v *valhallav1alpha1.Valhalla) {
+				v.Spec.Resources = expectedRequirements
+			})).To(Succeed())
+
+			Eventually(func() corev1.ResourceList {
+				deployment := deployment(ctx, instance, "")
+				resourceRequirements = deployment.Spec.Template.Spec.Containers[0].Resources
+				return resourceRequirements.Requests
+			}, 3).Should(HaveKeyWithValue(corev1.ResourceCPU, expectedRequirements.Requests[corev1.ResourceCPU]))
+			Expect(resourceRequirements.Limits).To(HaveKeyWithValue(corev1.ResourceCPU, expectedRequirements.Limits[corev1.ResourceCPU]))
+			Expect(resourceRequirements.Requests).To(HaveKeyWithValue(corev1.ResourceMemory, expectedRequirements.Requests[corev1.ResourceMemory]))
+			Expect(resourceRequirements.Limits).To(HaveKeyWithValue(corev1.ResourceMemory, expectedRequirements.Limits[corev1.ResourceMemory]))
+		})
 	})
 
 	Context("Recreate child resources after deletion", func() {
