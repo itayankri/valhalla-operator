@@ -223,7 +223,3 @@ catalog-build: opm ## Build a catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
-
-install-tools:
-	go mod download
-	grep _ tools/tools.go | awk -F '"' '{print $$2}' | xargs -t go install
