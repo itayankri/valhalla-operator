@@ -33,7 +33,7 @@ jobs:
 
   e2e-tests:
     name: E2E tests
-    timeout-minutes: 20
+    timeout-minutes: 7
     runs-on: ubuntu-latest
     steps:
     - name: Install Go
@@ -53,17 +53,18 @@ jobs:
       uses: actions/checkout@v2
     - name: Setup kubectl
       uses: azure/setup-kubectl@v3
-    - name: Create k8s Kind Cluster
-      uses: helm/kind-action@v1.3.0
-      with:
-        config: examples/kind-config.yaml
     - uses: azure/setup-helm@v3
       with:
         version: 3.7.1
+    - name: Install Kind
+      uses: helm/kind-action@v1.3.0
+      with:
+        install_only: true
     - name: Run tests
       run: |
         export GOPATH=$HOME/go
         export PATH=$PATH:$GOPATH/bin
+        kind create cluster --name valhalla --config ./kind-config.yaml
         kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/nfs-provisioner/nfs-server.yaml
         helm repo add csi-driver-nfs https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
         helm install csi-driver-nfs csi-driver-nfs/csi-driver-nfs --namespace kube-system --version v3.1.0
