@@ -33,7 +33,7 @@ jobs:
 
   e2e-tests:
     name: E2E tests
-    timeout-minutes: 7
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
     - name: Install Go
