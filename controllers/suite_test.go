@@ -23,6 +23,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/util/retry"
@@ -41,6 +42,7 @@ import (
 
 var cfg *rest.Config
 var k8sClient client.Client
+var clientSet *kubernetes.Clientset
 var testEnv *envtest.Environment
 var ctx context.Context
 var updateWithRetry = func(v *valhallav1alpha1.Valhalla, callback func(v *valhallav1alpha1.Valhalla)) error {
@@ -82,6 +84,9 @@ var _ = BeforeSuite(func() {
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
+
+	clientSet, err = kubernetes.NewForConfig(cfg)
+	Expect(err).NotTo(HaveOccurred())
 
 	ctx = context.Background()
 

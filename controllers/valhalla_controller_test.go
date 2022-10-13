@@ -9,6 +9,7 @@ import (
 	"github.com/itayankri/valhalla-operator/internal/status"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -22,6 +23,9 @@ const (
 	ClusterDeletionTimeout = 5 * time.Second
 	MapBuildingTimeout     = 2 * 60 * time.Second
 )
+
+var instance *valhallav1alpha1.Valhalla
+var defaultNamespace = "default"
 
 var _ = Describe("ValhallaController", func() {
 	Context("Service configurations", func() {
@@ -41,11 +45,43 @@ var _ = Describe("ValhallaController", func() {
 	})
 
 	Context("Recreate child resources after deletion", func() {
+		BeforeEach(func() {
+			instance = generateValhallaCluster("recreate-children")
+			Expect(k8sClient.Create(ctx, instance)).To(Succeed())
+			waitForValhallaDeployment(ctx, instance, k8sClient)
+		})
 
+		AfterEach(func() {
+			Expect(k8sClient.Delete(ctx, instance)).To(Succeed())
+		})
+
+		It("recreates child resources after deletion", func() {
+			oldService := service(ctx, instance, "")
+			oldDeployment := deployment(ctx, instance, "")
+			oldHpa := hpa(ctx, instance, "")
+
+			Expect(k8sClient.Delete(ctx, oldService)).NotTo(HaveOccurred())
+			Expect(k8sClient.Delete(ctx, oldHpa)).NotTo(HaveOccurred())
+			Expect(k8sClient.Delete(ctx, oldDeployment)).NotTo(HaveOccurred())
+
+			Eventually(func() bool {
+				deployment := deployment(ctx, instance, "")
+				return string(deployment.UID) != string(oldDeployment.UID)
+			}, 5).Should(BeTrue())
+
+			Eventually(func() bool {
+				svc := service(ctx, instance, "")
+				return string(svc.UID) != string(oldService.UID)
+			}, 5).Should(BeTrue())
+
+			Eventually(func() bool {
+				hpa := hpa(ctx, instance, "")
+				return string(hpa.UID) != string(oldHpa.UID)
+			}, 5).Should(BeTrue())
+		})
 	})
 
 	Context("Valhalla CR ReconcileSuccess condition", func() {
-		var instance *valhallav1alpha1.Valhalla
 		BeforeEach(func() {
 			instance = generateValhallaCluster("reconcile-success-condition")
 		})
@@ -76,11 +112,32 @@ var _ = Describe("ValhallaController", func() {
 					return metav1.ConditionUnknown
 				}, 60*time.Second).Should(Equal(metav1.ConditionFalse))
 			})
+
+			By("setting to True when spec is valid", func() {
+				// It is impossible to create a deployment with -1 replicas. Thus we expect reconcilication to fail.
+				Expect(updateWithRetry(instance, func(v *valhallav1alpha1.Valhalla) {
+					v.Spec.MinReplicas = pointer.Int32Ptr(2)
+				})).To(Succeed())
+
+				Eventually(func() metav1.ConditionStatus {
+					valhalla := &valhallav1alpha1.Valhalla{}
+					Expect(k8sClient.Get(ctx, types.NamespacedName{
+						Name:      instance.Name,
+						Namespace: instance.Namespace,
+					}, valhalla)).To(Succeed())
+
+					for _, condition := range valhalla.Status.Conditions {
+						if condition.Type == status.ConditionReconciliationSuccess {
+							return condition.Status
+						}
+					}
+					return metav1.ConditionUnknown
+				}, 60*time.Second).Should(Equal(metav1.ConditionTrue))
+			})
 		})
 	})
 
 	Context("Pause reconciliation", func() {
-		var instance *valhallav1alpha1.Valhalla
 		BeforeEach(func() {
 			instance = generateValhallaCluster("pause-reconcile")
 			Expect(k8sClient.Create(ctx, instance)).To(Succeed())
@@ -122,7 +179,7 @@ func generateValhallaCluster(name string) *valhallav1alpha1.Valhalla {
 	valhalla := &valhallav1alpha1.Valhalla{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: "default",
+			Namespace: defaultNamespace,
 		},
 		Spec: valhallav1alpha1.ValhallaSpec{
 			PBFURL:      "https://download.geofabrik.de/australia-oceania/marshall-islands-latest.osm.pbf",
@@ -190,18 +247,50 @@ func waitForValhallaDeployment(ctx context.Context, instance *valhallav1alpha1.V
 	}, MapBuildingTimeout, 1*time.Second).Should(Equal("ready"))
 }
 
-func hpa(ctx context.Context, v *valhallav1alpha1.Valhalla, hpaName string) autoscalingv1.HorizontalPodAutoscaler {
+func hpa(ctx context.Context, v *valhallav1alpha1.Valhalla, hpaName string) *autoscalingv1.HorizontalPodAutoscaler {
 	name := v.ChildResourceName(hpaName)
-	hpa := autoscalingv1.HorizontalPodAutoscaler{}
+	hpa := &autoscalingv1.HorizontalPodAutoscaler{}
 	EventuallyWithOffset(1, func() error {
 		if err := k8sClient.Get(
 			ctx,
 			types.NamespacedName{Name: name, Namespace: v.Namespace},
-			&hpa,
+			hpa,
 		); err != nil {
 			return err
 		}
 		return nil
 	}, MapBuildingTimeout).Should(Succeed())
 	return hpa
+}
+
+func service(ctx context.Context, v *valhallav1alpha1.Valhalla, svcName string) *corev1.Service {
+	name := v.ChildResourceName(svcName)
+	svc := &corev1.Service{}
+	EventuallyWithOffset(1, func() error {
+		if err := k8sClient.Get(
+			ctx,
+			types.NamespacedName{Name: name, Namespace: v.Namespace},
+			svc,
+		); err != nil {
+			return err
+		}
+		return nil
+	}, MapBuildingTimeout).Should(Succeed())
+	return svc
+}
+
+func deployment(ctx context.Context, v *valhallav1alpha1.Valhalla, deploymentName string) *appsv1.Deployment {
+	name := v.ChildResourceName(deploymentName)
+	deployment := &appsv1.Deployment{}
+	EventuallyWithOffset(1, func() error {
+		if err := k8sClient.Get(
+			ctx,
+			types.NamespacedName{Name: name, Namespace: v.Namespace},
+			deployment,
+		); err != nil {
+			return err
+		}
+		return nil
+	}, MapBuildingTimeout).Should(Succeed())
+	return deployment
 }
