@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Install Go
+    - name: Build image
       uses: ./.github/actions/build
       with:
         dockerhubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
