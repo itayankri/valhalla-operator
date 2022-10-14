@@ -101,7 +101,7 @@ vet: ## Run go vet against code.
 
 .PHONY: unit-test
 unit-test: manifests generate fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test $(go list ./... | grep -v /controllers) -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./api/... ./internal/...
 
 .PHONY: integration-test
 integration-test: manifests generate fmt vet envtest ## Run tests.
