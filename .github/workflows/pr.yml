@@ -39,7 +39,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build image
-      uses: ./.github/build
+      uses: ./.github/workflows/build
       with:
         goVersion: ${{ env.GO_VERSION }}
         dockerhubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
