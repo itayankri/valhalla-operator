@@ -1,0 +1,79 @@
+name: Default
+
+on:
+  pull_request:
+    branches: [ master ]
+
+env:
+  GO_VERSION: 1.19.2
+  K8S_VERSION: v1.24.1
+
+jobs:
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - name: Setup Golang caches
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-golang-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-golang-
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+    - name: Run tests
+      run: make unit-test
+
+  integration-tests:
+    needs: ["unit-tests"]
+    name: Integration tests
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - name: Setup Golang caches
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-golang-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-golang-
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+    - uses: azure/setup-helm@v3
+      with:
+        version: 3.7.1
+    - name: Install Kind
+      uses: helm/kind-action@v1.3.0
+      with:
+        install_only: true
+    - name: Run tests
+      run: |
+        export GOPATH=$HOME/go
+        export PATH=$PATH:$GOPATH/bin
+        cat /etc/docker/daemon.json | jq '. += {"storage-driver":"vfs"}' > daemon.json
+        sudo rm /etc/docker/daemon.json
+        sudo mv daemon.json /etc/docker/daemon.json 
+        sudo systemctl restart docker.service
+        kind create cluster --name valhalla --config examples/kind-config.yaml
+        kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/nfs-provisioner/nfs-server.yaml
+        helm repo add csi-driver-nfs https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+        helm install csi-driver-nfs csi-driver-nfs/csi-driver-nfs --namespace kube-system --version v3.1.0
+        kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/storageclass-nfs.yaml
+        kubectl wait --for condition=Available deployment/nfs-server
+        sleep 5
+        kubectl logs $(kubectl get pods | grep nfs | awk '{print $1}')
+        make install deploy
+        make integration-test

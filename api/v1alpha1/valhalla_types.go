@@ -17,8 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/itayankri/valhalla-operator/internal/status"
@@ -159,9 +157,6 @@ func (valhallaStatus *ValhallaStatus) SetConditions(resources []runtime.Object) 
 		allReplicasReadyCondition,
 		reconciliationSuccessCondition,
 	}
-	// TODO: Reomve after done debugging
-	rawConditions, _ := json.Marshal(valhallaStatus.Conditions)
-	fmt.Println("Child conditions", rawConditions)
 }
 
 func (status *ValhallaStatus) SetCondition(condition metav1.Condition) {
