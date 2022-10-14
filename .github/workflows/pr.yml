@@ -107,5 +107,6 @@ jobs:
         sleep 5
         kubectl logs $(kubectl get pods | grep nfs | awk '{print $1}')
         make install deploy
+        kubectl -n valhalla-system get deployment valhalla-controller-manager -o yaml
         kubectl -n valhalla-system wait --for condition=Available deployment/valhalla-controller-manager --timeout=60s
         make integration-test
