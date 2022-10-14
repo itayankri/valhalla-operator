@@ -64,7 +64,7 @@ jobs:
         export PATH=$PATH:$GOPATH/bin
         echo {} | jq '. += {"storage-driver":"vfs"}' > $HOME/.docker/daemon.json
         cat $HOME/.docker/daemon.json
-        sudo service docker restart
+        sudo systemctl restart docker
         kind create cluster --name valhalla --config examples/kind-config.yaml
         kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/nfs-provisioner/nfs-server.yaml
         helm repo add csi-driver-nfs https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
