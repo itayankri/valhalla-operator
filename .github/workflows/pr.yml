@@ -41,8 +41,8 @@ jobs:
     - name: Install Go
       uses: ./.github/actions/build
       with:
-        dockerhubUsername: {{ secrets.DOCKERHUB_USERNAME }}
-        dockerhubToken: {{ secrets.DOCKERHUB_TOKEN }}
+        dockerhubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
+        dockerhubToken: ${{ secrets.DOCKERHUB_TOKEN }}
 
   integration-tests:
     needs: ["build"]
