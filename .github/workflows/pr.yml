@@ -52,8 +52,8 @@ jobs:
           ${{ runner.os }}-golang-
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
-    - name: Run tests
-      run: make docker-build
+    - name: Build image
+      run: make docker-build docker-push
 
   integration-tests:
     needs: ["build"]
