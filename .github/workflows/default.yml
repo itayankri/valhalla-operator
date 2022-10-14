@@ -69,6 +69,7 @@ jobs:
         helm install csi-driver-nfs csi-driver-nfs/csi-driver-nfs --namespace kube-system --version v3.1.0
         kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/storageclass-nfs.yaml
         kubectl wait --for condition=Available deployment/nfs-server
+        sleep 5
         kubectl logs $(kubectl get pods | grep nfs | awk '{print $1}')
         make install deploy
         # make integration-test
