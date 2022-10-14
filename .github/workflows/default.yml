@@ -32,6 +32,7 @@ jobs:
       run: make unit-test
 
   integration-tests:
+    needs: ["unit-tests"]
     name: Integration tests
     timeout-minutes: 60
     runs-on: ubuntu-latest
