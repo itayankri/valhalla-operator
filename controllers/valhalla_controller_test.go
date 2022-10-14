@@ -21,7 +21,7 @@ import (
 
 const (
 	ClusterDeletionTimeout = 5 * time.Second
-	MapBuildingTimeout     = 3 * 60 * time.Second
+	MapBuildingTimeout     = 2 * 60 * time.Second
 )
 
 var instance *valhallav1alpha1.Valhalla
