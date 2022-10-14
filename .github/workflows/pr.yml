@@ -41,6 +41,7 @@ jobs:
     - name: Build image
       uses: ./.github/build
       with:
+        goVersion: ${{ env.GO_VERSION }}
         dockerhubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
         dockerhubToken: ${{ secrets.DOCKERHUB_TOKEN }}
 

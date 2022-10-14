@@ -9,6 +9,10 @@ inputs:
     description: 'DockerHub token'
     default: ''
     required: true
+  goVersion:
+    description: 'Golang version'
+    default: 1.19.2
+    required: true
 
 run:
   using: "composite"
@@ -16,7 +20,7 @@ run:
   - name: Install Go
     uses: actions/setup-go@v2
     with:
-      go-version: ${{ env.GO_VERSION }}
+      go-version: ${{ inputs.goVersion }}
   - name: Setup Golang caches
     uses: actions/cache@v3
     with:
