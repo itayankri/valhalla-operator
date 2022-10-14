@@ -62,10 +62,7 @@ jobs:
       run: |
         export GOPATH=$HOME/go
         export PATH=$PATH:$GOPATH/bin
-        cat $HOME/.docker/daemon.json
-        cat $HOME/.docker/daemon.json | jq '. += {"storage-driver":"vfs"}' > temp_daemon.json
-        rm $HOME/.docker/daemon.json
-        mv temp_daemon.json $HOME/.docker/daemon.json
+        echo {} | jq '. += {"storage-driver":"vfs"}' > $HOME/.docker/daemon.json
         cat $HOME/.docker/daemon.json
         sudo service docker restart
         kind create cluster --name valhalla --config examples/kind-config.yaml
