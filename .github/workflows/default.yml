@@ -62,8 +62,11 @@ jobs:
       run: |
         export GOPATH=$HOME/go
         export PATH=$PATH:$GOPATH/bin
+        cat $HOME/.docker/config.json | jq '. += {"storage-driver":"vfs"}' > temp_config.json
+        rm $HOME/.docker/config.json
+        mv $HOME/.docker/temp_config.json $HOME/.docker/config.json
         cat $HOME/.docker/config.json
-        kind create cluster --name valhalla --config examples/kind-config.yaml\
+        kind create cluster --name valhalla --config examples/kind-config.yaml
         kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/nfs-provisioner/nfs-server.yaml
         helm repo add csi-driver-nfs https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
         helm install csi-driver-nfs csi-driver-nfs/csi-driver-nfs --namespace kube-system --version v3.1.0
