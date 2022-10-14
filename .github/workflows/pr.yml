@@ -34,7 +34,7 @@ jobs:
 
   build:
     name: Build
-    needs: ["unit-test"]
+    needs: ["unit-tests"]
     runs-on: ubuntu-latest
     steps:
     - name: Install Go
