@@ -51,8 +51,6 @@ jobs:
           ${{ runner.os }}-golang-
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
-    - name: Setup kubectl
-      uses: azure/setup-kubectl@v3
     - uses: azure/setup-helm@v3
       with:
         version: 3.7.1
