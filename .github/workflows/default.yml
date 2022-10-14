@@ -72,7 +72,4 @@ jobs:
         kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/storageclass-nfs.yaml
         kubectl wait --for condition=Available deployment/nfs-server
         make install deploy
-        kubectl get namespaces
-        kubectl get all
-        kubectl -n valhalla-system get all
         make integration-test
