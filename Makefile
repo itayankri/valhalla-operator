@@ -29,14 +29,22 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
 # itayankri/valhalla-bundle:$VERSION and itayankri/valhalla-catalog:$VERSION.
-IMAGE_TAG_BASE ?= itayankri/valhalla
+IMAGE_TAG_BASE ?= itayankri/valhalla-operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
+# In this image the tag is the branch name.
+TEST_IMG ?= $(IMAGE_TAG_BASE):$(shell git rev-parse --short HEAD)
+
 # Image URL to use all building/pushing image targets
+ifeq ($(ENV), production)
 IMG ?= itayankri/valhalla-operator:latest
+else
+IMG ?= $(TEST_IMG)
+endif
+
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.22
 
@@ -97,7 +105,7 @@ unit-test: manifests generate fmt vet envtest ## Run tests.
 
 .PHONY: integration-test
 integration-test: manifests generate fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" USE_EXISTING_CLUSTER=true go test ./controllers/...
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" USE_EXISTING_CLUSTER=true go test -timeout 900s ./controllers/...
 ##@ Build
 
 .PHONY: build

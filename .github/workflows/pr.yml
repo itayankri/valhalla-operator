@@ -1,14 +1,13 @@
-name: Default
+name: PR
 
 on:
-  push:
-    branches: [ master ]
   pull_request:
     branches: [ master ]
 
 env:
   GO_VERSION: 1.19.2
   K8S_VERSION: v1.24.1
+  ENV: test
 
 jobs:
   unit-tests:
@@ -33,8 +32,38 @@ jobs:
     - name: Run tests
       run: make unit-test
 
-  integration-tests:
+  build:
+    name: Build
     needs: ["unit-tests"]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - name: Setup Golang caches
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-golang-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-golang-
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Build image
+      run: make docker-build docker-push
+
+  integration-tests:
+    needs: ["build"]
     name: Integration tests
     timeout-minutes: 60
     runs-on: ubuntu-latest
@@ -54,6 +83,8 @@ jobs:
           ${{ runner.os }}-golang-
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
     - uses: azure/setup-helm@v3
       with:
         version: 3.7.1
@@ -74,8 +105,9 @@ jobs:
         helm repo add csi-driver-nfs https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
         helm install csi-driver-nfs csi-driver-nfs/csi-driver-nfs --namespace kube-system --version v3.1.0
         kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/storageclass-nfs.yaml
-        kubectl wait --for condition=Available deployment/nfs-server
+        kubectl wait --for condition=Available deployment/nfs-server --timeout=60s
         sleep 5
         kubectl logs $(kubectl get pods | grep nfs | awk '{print $1}')
         make install deploy
+        kubectl -n valhalla-system wait --for condition=Available deployment/valhalla-controller-manager --timeout=60s
         make integration-test
