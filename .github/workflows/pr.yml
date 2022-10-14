@@ -39,7 +39,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build image
-      uses: ./.github/actions/build
+      uses: ./.github/build
       with:
         dockerhubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
         dockerhubToken: ${{ secrets.DOCKERHUB_TOKEN }}
