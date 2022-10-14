@@ -95,8 +95,8 @@ vet: ## Run go vet against code.
 unit-test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test $(go list ./... | grep -v /controllers/) -coverprofile cover.out
 
-.PHONY: e2e-test
-e2e-test: manifests generate fmt vet envtest ## Run tests.
+.PHONY: integration-test
+integration-test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" USE_EXISTING_CLUSTER=true go test ./controllers/...
 ##@ Build
 

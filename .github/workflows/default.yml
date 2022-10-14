@@ -31,9 +31,9 @@ jobs:
     - name: Run tests
       run: make unit-test
 
-  e2e-tests:
-    name: E2E tests
-    timeout-minutes: 20
+  integration-tests:
+    name: Integration tests
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
     - name: Install Go
@@ -75,4 +75,4 @@ jobs:
         kubectl get namespaces
         kubectl get all
         kubectl -n valhalla-system get all
-        make e2e-test
+        make integration-test
