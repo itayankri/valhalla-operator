@@ -62,11 +62,9 @@ jobs:
       run: |
         export GOPATH=$HOME/go
         export PATH=$PATH:$GOPATH/bin
-        cat /etc/docker/daemon.json
         echo {} | jq '. += {"storage-driver":"vfs"}' > daemon.json
         sudo rm /etc/docker/daemon.json
         sudo mv daemon.json /etc/docker/daemon.json 
-        cat /etc/docker/daemon.json
         sudo systemctl restart docker.service
         kind create cluster --name valhalla --config examples/kind-config.yaml
         kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/deploy/example/nfs-provisioner/nfs-server.yaml
@@ -77,4 +75,4 @@ jobs:
         sleep 5
         kubectl logs $(kubectl get pods | grep nfs | awk '{print $1}')
         make install deploy
-        # make integration-test
+        make integration-test
