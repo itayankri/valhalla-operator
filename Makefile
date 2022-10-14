@@ -36,7 +36,7 @@ IMAGE_TAG_BASE ?= itayankri/valhalla
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
 # In this image the tag is the branch name.
-TEST_IMG ?= $(IMAGE_TAG_BASE):$(shell git branch | sed -n -e 's/^\* \(.*\)/\1/p')
+TEST_IMG ?= $(IMAGE_TAG_BASE):$(shell git rev-parse --short HEAD)
 
 # Image URL to use all building/pushing image targets
 ifeq ($(ENV), production)
