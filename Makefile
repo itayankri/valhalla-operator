@@ -35,8 +35,16 @@ IMAGE_TAG_BASE ?= itayankri/valhalla
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
+# In this image the tag is the branch name.
+TEST_IMG ?= $(IMAGE_TAG_BASE):$(shell git branch | sed -n -e 's/^\* \(.*\)/\1/p')
+
 # Image URL to use all building/pushing image targets
+ifeq ($(ENV), production)
 IMG ?= itayankri/valhalla-operator:latest
+else
+IMG ?= $(TEST_IMG)
+endif
+
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.22
 
