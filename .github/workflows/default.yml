@@ -63,7 +63,7 @@ jobs:
       run: |
         export GOPATH=$HOME/go
         export PATH=$PATH:$GOPATH/bin
-        echo {} | jq '. += {"storage-driver":"vfs"}' > daemon.json
+        cat /etc/docker/daemon.json | jq '. += {"storage-driver":"vfs"}' > daemon.json
         sudo rm /etc/docker/daemon.json
         sudo mv daemon.json /etc/docker/daemon.json 
         sudo systemctl restart docker.service
