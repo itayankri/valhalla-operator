@@ -83,6 +83,8 @@ jobs:
           ${{ runner.os }}-golang-
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
     - uses: azure/setup-helm@v3
       with:
         version: 3.7.1
