@@ -37,6 +37,7 @@ jobs:
     needs: ["unit-tests"]
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
     - name: Install Go
       uses: ./.github/actions/build
       with:
