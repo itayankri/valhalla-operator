@@ -1,15 +1,15 @@
 name: Build
 
 inputs:
-  dockerhubUsername:
+  dockerhub-username:
     description: 'DockerHub username'
     default: ''
     required: true
-  dockerhubToken:
+  dockerhub-token:
     description: 'DockerHub token'
     default: ''
     required: true
-  goVersion:
+  go-version:
     description: 'Golang version'
     default: 1.19.2
     required: false
@@ -20,7 +20,7 @@ run:
   - name: Install Go
     uses: actions/setup-go@v2
     with:
-      go-version: ${{ inputs.goVersion }}
+      go-version: ${{ inputs.go-version }}
   - name: Setup Golang caches
     uses: actions/cache@v3
     with:
@@ -37,7 +37,8 @@ run:
   - name: Login to Docker Hub
     uses: docker/login-action@v2
     with:
-      username: ${{ inputs.dockerhubUsername }}
-      password: ${{ inputs.dockerhubToken }}
+      username: ${{ inputs.dockerhub-username }}
+      password: ${{ inputs.dockerhub-token }}
   - name: Build image
+    shell: bash
     run: make docker-build docker-push

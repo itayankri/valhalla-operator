@@ -29,9 +29,9 @@ jobs:
     - name: Build image
       uses: ./.github/actions/build
       with:
-        goVersion: ${{ env.GO_VERSION }}
-        dockerhubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
-        dockerhubToken: ${{ secrets.DOCKERHUB_TOKEN }}
+        go-version: ${{ env.GO_VERSION }}
+        dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+        dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
 
   integration-tests:
     needs: ["build"]
