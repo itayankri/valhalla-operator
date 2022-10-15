@@ -2,15 +2,13 @@ name: Build
 
 inputs:
   dockerhub-username:
-    description: 'DockerHub username'
-    default: ''
+    description: "DockerHub username"
     required: true
   dockerhub-token:
-    description: 'DockerHub token'
-    default: ''
+    description: "DockerHub token"
     required: true
   go-version:
-    description: 'Golang version'
+    description: "Golang version"
     default: 1.19.2
     required: false
 
