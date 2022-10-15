@@ -1,0 +1,41 @@
+name: Master
+
+on:
+  push:
+    branches: [ master ]
+
+env:
+  GO_VERSION: 1.19.2
+  K8S_VERSION: v1.24.1
+  ENV: production
+
+jobs:
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run test
+      uses: ./.github/actions/unit-test
+
+  build:
+    name: Build
+    needs: ["unit-tests"]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build image
+      uses: ./.github/actions/build
+      with:
+        dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+        dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  integration-tests:
+    needs: ["build"]
+    name: Integration tests
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run tests
+      uses: ./.github/actions/integration-test
