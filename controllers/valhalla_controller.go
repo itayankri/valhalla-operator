@@ -67,6 +67,7 @@ func NewValhallaReconciler(client client.Client, scheme *runtime.Scheme) *Valhal
 // +kubebuilder:rbac:groups="batch",resources=jobs,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups="apps",resources=deployments,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups="autoscaling",resources=horizontalpodautoscalers,verbs=get;list;watch;create;update
+// +kubebuilder:rbac:groups="policy",resources=poddisruptionbudgets,verbs=get;list;watch;create;update
 // +kubebuilder:rbac:groups=valhalla.itayankri,resources=valhallas,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=valhalla.itayankri,resources=valhallas/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=valhalla.itayankri,resources=valhallas/finalizers,verbs=update
