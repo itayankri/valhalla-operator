@@ -27,10 +27,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-const (
-	defaultImage             = "valhalla/valhalla:run-latest"
-	OperatorPausedAnnotation = "valhalla.itayankri/operator.paused"
-)
+const OperatorPausedAnnotation = "valhalla.itayankri/operator.paused"
 
 // Phase is the current phase of the deployment
 type Phase string
@@ -87,13 +84,6 @@ func (spec *ValhallaSpec) GetThreadsPerPod() int32 {
 		return 2
 	}
 	return *spec.ThreadsPerPod
-}
-
-func (spec *ValhallaSpec) GetImage() string {
-	if spec.Image != nil {
-		return *spec.Image
-	}
-	return defaultImage
 }
 
 func (spec *ValhallaSpec) GetMinAvailable() *intstr.IntOrString {

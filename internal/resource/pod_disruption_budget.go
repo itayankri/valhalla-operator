@@ -9,8 +9,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const PodDisruptionBudgetSuffix = ""
-
 type PodDisruptionBudgetBuilder struct {
 	*ValhallaResourceBuilder
 }

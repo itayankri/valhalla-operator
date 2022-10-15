@@ -12,9 +12,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const DeploymentSuffix = ""
-const workerImage = "itayankri/valhalla-worker:latest"
-
 type DeploymentBuilder struct {
 	*ValhallaResourceBuilder
 }
