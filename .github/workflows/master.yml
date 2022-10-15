@@ -1,13 +1,13 @@
-name: PR
+name: Master
 
 on:
-  pull_request:
+  push:
     branches: [ master ]
 
 env:
   GO_VERSION: 1.19.2
   K8S_VERSION: v1.24.1
-  ENV: test
+  ENV: production
 
 jobs:
   unit-tests:
