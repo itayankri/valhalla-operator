@@ -8,7 +8,6 @@ inputs:
 
 runs:
   using: "composite"
-  shell: bash
   steps:
   - name: Install Go
     uses: actions/setup-go@v2
@@ -26,4 +25,5 @@ runs:
   - name: Check out code into the Go module directory
     uses: actions/checkout@v2
   - name: Run tests
+    shell: bash
     run: make unit-test
