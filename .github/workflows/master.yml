@@ -33,7 +33,7 @@ jobs:
   integration-tests:
     needs: ["build"]
     name: Integration tests
-    timeout-minutes: 60
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
