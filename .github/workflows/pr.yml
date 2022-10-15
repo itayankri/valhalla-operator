@@ -14,6 +14,7 @@ jobs:
     name: Unit tests
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
     - name: Run test
       uses: ./.github/actions/unit-test
       with:
@@ -38,6 +39,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
     - name: Run tests
       uses: ./.github/actions/integration-test
       with:
