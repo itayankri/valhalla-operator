@@ -13,7 +13,6 @@ jobs:
   unit-tests:
     name: Unit tests
     runs-on: ubuntu-latest
-    shell: bash
     steps:
     - uses: actions/checkout@v2
     - name: Run test
