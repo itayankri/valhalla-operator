@@ -11,8 +11,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const PersistentVolumeClaimSuffix = ""
-
 type PersistentVolumeClaimBuilder struct {
 	*ValhallaResourceBuilder
 }

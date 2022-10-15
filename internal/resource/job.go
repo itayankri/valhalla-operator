@@ -13,9 +13,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const JobSuffix = "builder"
-const mapBuilderImage = "itayankri/valhalla-builder:latest"
-
 type JobBuilder struct {
 	*ValhallaResourceBuilder
 }
