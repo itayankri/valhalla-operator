@@ -1,11 +1,5 @@
 name: Unit test
 
-inputs:
-  goVersion:
-    description: 'Golang version'
-    default: 1.19.2
-    required: false
-
 runs:
   using: "composite"
   steps:
