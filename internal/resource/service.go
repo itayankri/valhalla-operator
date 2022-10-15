@@ -58,5 +58,5 @@ func (builder *ServiceBuilder) Update(object client.Object) error {
 }
 
 func (*ServiceBuilder) ShouldDeploy(resources []runtime.Object) bool {
-	return status.IsJobCompleted(resources)
+	return status.IsPersistentVolumeClaimBound(resources) && status.IsJobCompleted(resources)
 }
