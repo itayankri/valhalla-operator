@@ -3,8 +3,10 @@ package resource
 import (
 	"fmt"
 
+	"github.com/itayankri/valhalla-operator/internal/status"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -42,4 +44,8 @@ func (builder *PodDisruptionBudgetBuilder) Update(object client.Object) error {
 	}
 
 	return nil
+}
+
+func (*PodDisruptionBudgetBuilder) ShouldDeploy(resources []runtime.Object) bool {
+	return status.IsPersistentVolumeClaimBound(resources) && status.IsJobCompleted(resources)
 }

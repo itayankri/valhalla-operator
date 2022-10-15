@@ -24,6 +24,7 @@ func (builder *ValhallaResourceBuilder) ResourceBuilders() []ResourceBuilder {
 		builder.Deployment(),
 		builder.Service(),
 		builder.HorizontalPodAutoscaler(),
+		builder.PodDisruptionBudget(),
 	}
 	return builders
 }
