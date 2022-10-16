@@ -21,8 +21,9 @@ Now we need to make sure that the server is up and running. We will do that by l
 kubectl logs -f <pod_name>
 ```
 
-**Note**
-If your NFS server fails with the following error - "exportfs: /exports does not support NFS export", you will probably need to change your docker "storage-driver" setting. Docker uses OverlayFs by default, we need to change it to vfs. In order to change this setting you need to edit a file called "deamon.json" and then restart the daemon.
+> **Note**
+> If your NFS server fails with the following error - "exportfs: /exports does not support NFS export", you will probably need to change your docker "storage-driver" setting.
+> Docker uses OverlayFs by default, we need to change it to vfs. In order to change this setting you need to edit a file called "deamon.json" and then restart the daemon.
 
 Once our NFS server is ready, we will install the provisioner using helm, so please make you have [helm](https://helm.sh/docs/intro/install/) installed on your machine.
 
