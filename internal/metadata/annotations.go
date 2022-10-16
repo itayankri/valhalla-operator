@@ -9,16 +9,16 @@ func ReconcileAnnotations(existing map[string]string, defaults ...map[string]str
 func merge(baseAnnotations map[string]string, maps ...map[string]string) map[string]string {
 	annotations := map[string]string{}
 	if baseAnnotations != nil {
-		result = baseAnnotations
+		annotations = baseAnnotations
 	}
 
 	for _, m := range maps {
 		for k, v := range m {
-			result[k] = v
+			annotations[k] = v
 		}
 	}
 
-	return result
+	return annotations
 }
 
 func isKubernetesAnnotation(k string) bool {
