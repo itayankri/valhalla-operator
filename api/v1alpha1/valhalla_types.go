@@ -62,10 +62,10 @@ const (
 type ValhallaSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	PBFURL        string          `json:"pbfUrl,omitempty"`
-	Image         *string         `json:"image,omitempty"`
-	Persistence   PersistenceSpec `json:"persistence,omitempty"`
-	Service       *ServiceSpec
+	PBFURL        string                       `json:"pbfUrl,omitempty"`
+	Image         *string                      `json:"image,omitempty"`
+	Persistence   PersistenceSpec              `json:"persistence,omitempty"`
+	Service       *ServiceSpec                 `json:"service,omitempty"`
 	MinReplicas   *int32                       `json:"minReplicas,omitempty"`
 	MaxReplicas   *int32                       `json:"maxReplicas,omitempty"`
 	MinAvailable  *int32                       `json:"minAvailable,omitempty"`
