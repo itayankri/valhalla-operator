@@ -62,9 +62,10 @@ const (
 type ValhallaSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	PBFURL        string                       `json:"pbfUrl,omitempty"`
-	Image         *string                      `json:"image,omitempty"`
-	Persistence   PersistenceSpec              `json:"persistence,omitempty"`
+	PBFURL        string          `json:"pbfUrl,omitempty"`
+	Image         *string         `json:"image,omitempty"`
+	Persistence   PersistenceSpec `json:"persistence,omitempty"`
+	Service       ServiceSpec
 	MinReplicas   *int32                       `json:"minReplicas,omitempty"`
 	MaxReplicas   *int32                       `json:"maxReplicas,omitempty"`
 	MinAvailable  *int32                       `json:"minAvailable,omitempty"`
@@ -102,6 +103,11 @@ func (spec *ValhallaSpec) GetPbfFileName() string {
 type PersistenceSpec struct {
 	StorageClassName string             `json:"storageClassName,omitempty"`
 	Storage          *resource.Quantity `json:"storage,omitempty"`
+}
+
+type ServiceSpec struct {
+	Type        corev1.ServiceType `json:"type,omitempty"`
+	Annotations map[string]string  `json:"annotations,omitempty"`
 }
 
 // ValhallaStatus defines the observed state of Valhalla
