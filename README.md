@@ -12,3 +12,10 @@ Then you can deploy a Valhalla instance:
 kubectl apply -f https://github.com/itayankri/valhalla-operator/blob/master/examples/example.yaml
 ```
 For a full setup from scratch checkout this [demo](https://github.com/itayankri/valhalla-operator/tree/master/examples).
+
+## Pausing the Operator
+The reconciliation can be paused by adding the following annotation to the Valhalla resource:
+```bash
+valhalla.itayankri/operator.paused: "true"
+```
+The operator will not react to any changes to the Valhalla resource or any of the watched resources. If a paused Valhalla resource is deleted, the dependent resources will still be cleaned up because thay all have an ownerReference.
