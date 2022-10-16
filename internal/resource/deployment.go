@@ -53,7 +53,7 @@ func (builder *DeploymentBuilder) Update(object client.Object) error {
 						Image: workerImage,
 						Ports: []corev1.ContainerPort{
 							{
-								ContainerPort: 5000,
+								ContainerPort: containerPort,
 							},
 						},
 						Resources: *builder.Instance.Spec.GetResources(),

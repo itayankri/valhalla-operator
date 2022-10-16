@@ -65,6 +65,7 @@ type ValhallaSpec struct {
 	PBFURL        string                       `json:"pbfUrl,omitempty"`
 	Image         *string                      `json:"image,omitempty"`
 	Persistence   PersistenceSpec              `json:"persistence,omitempty"`
+	Service       *ServiceSpec                 `json:"service,omitempty"`
 	MinReplicas   *int32                       `json:"minReplicas,omitempty"`
 	MaxReplicas   *int32                       `json:"maxReplicas,omitempty"`
 	MinAvailable  *int32                       `json:"minAvailable,omitempty"`
@@ -102,6 +103,11 @@ func (spec *ValhallaSpec) GetPbfFileName() string {
 type PersistenceSpec struct {
 	StorageClassName string             `json:"storageClassName,omitempty"`
 	Storage          *resource.Quantity `json:"storage,omitempty"`
+}
+
+type ServiceSpec struct {
+	Type        corev1.ServiceType `json:"type,omitempty"`
+	Annotations map[string]string  `json:"annotations,omitempty"`
 }
 
 // ValhallaStatus defines the observed state of Valhalla

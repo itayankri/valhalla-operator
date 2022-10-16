@@ -16,3 +16,7 @@ spec:
   persistence:
     storage: "100Mi"
     storageClassName: nfs-csi
+  service:
+    type: LoadBalancer
+    annotations:
+      example-annotation: "example-annotation"

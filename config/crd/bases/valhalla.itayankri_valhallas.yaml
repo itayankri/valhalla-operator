@@ -87,6 +87,17 @@ spec:
                       to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                     type: object
                 type: object
+              service:
+                properties:
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  type:
+                    description: Service Type string describes ingress methods for
+                      a service
+                    type: string
+                type: object
               threadsPerPod:
                 format: int32
                 type: integer
