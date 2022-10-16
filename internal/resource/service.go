@@ -53,6 +53,7 @@ func (builder *ServiceBuilder) Update(object client.Object) error {
 
 	if builder.Instance.Spec.Service != nil {
 		service.Spec.Type = builder.Instance.Spec.Service.Type
+		builder.setAnnotations(service)
 	}
 
 	if err := controllerutil.SetControllerReference(builder.Instance, service, builder.Scheme); err != nil {
