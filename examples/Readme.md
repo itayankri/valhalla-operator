@@ -33,17 +33,15 @@ kubectl create -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nf
 ```
 
 ## Installing the operator
-The easiest way to install the operator at the moment is cloning this repository and run a *make* command (Make sure you have [golang](https://go.dev/) installed on your machine).
+Just run the following command to install the operator, includin the valhall CRD and all the other relevant resources.
 
 ```bash
-git clone https://github.com/itayankri/valhalla-operator.git
-make install deploy
+kubectl apply -f https://github.com/itayankri/valhalla-operator/releases/latest/download/valhalla-operator.yaml
 ```
-This command will create a new CRD on your cluster called "valhalla" and a new namespace for the operator.
 
 ### Creating a new Valhalla Instance
 This directory contains an example Valhalla resource. You can create it using kubectl.
 
 ```bash
-kubectl apply -f simple.yaml
+kubectl apply -f example.yaml
 ```

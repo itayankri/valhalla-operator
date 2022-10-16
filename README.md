@@ -11,3 +11,4 @@ Then you can deploy a Valhalla instance:
 ```
 kubectl apply -f https://github.com/itayankri/valhalla-operator/blob/master/examples/example.yaml
 ```
+For a full setup from scratch checkout this [demo](https://github.com/itayankri/valhalla-operator/examples)
