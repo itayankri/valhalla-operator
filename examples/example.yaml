@@ -18,3 +18,5 @@ spec:
     storageClassName: nfs-csi
   service:
     type: LoadBalancer
+    annotations:
+      example-annotation: "example-annotation"
