@@ -3,6 +3,7 @@ package resource
 import (
 	"fmt"
 
+	"github.com/itayankri/valhalla-operator/internal/metadata"
 	"github.com/itayankri/valhalla-operator/internal/status"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,12 +43,16 @@ func (builder *ServiceBuilder) Update(object client.Object) error {
 			Port:     80,
 			TargetPort: intstr.IntOrString{
 				Type:   intstr.Int,
-				IntVal: 8002,
+				IntVal: containerPort,
 			},
 		},
 	}
 	service.Spec.Selector = map[string]string{
 		"app": name,
+	}
+
+	if builder.Instance.Spec.Service != nil {
+		service.Spec.Type = builder.Instance.Spec.Service.Type
 	}
 
 	if err := controllerutil.SetControllerReference(builder.Instance, service, builder.Scheme); err != nil {
@@ -59,4 +64,10 @@ func (builder *ServiceBuilder) Update(object client.Object) error {
 
 func (*ServiceBuilder) ShouldDeploy(resources []runtime.Object) bool {
 	return status.IsPersistentVolumeClaimBound(resources) && status.IsJobCompleted(resources)
+}
+
+func (builder *ServiceBuilder) setAnnotations(service *corev1.Service) {
+	if builder.Instance.Spec.Service.Annotations != nil {
+		service.Annotations = metadata.ReconcileAnnotations(service.Annotations, builder.Instance.Spec.Service.Annotations)
+	}
 }

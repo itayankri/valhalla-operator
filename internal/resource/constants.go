@@ -10,3 +10,4 @@ const JobSuffix = "builder"
 const PersistentVolumeClaimSuffix = ""
 const PodDisruptionBudgetSuffix = ""
 const ServiceSuffix = ""
+const containerPort = 8002

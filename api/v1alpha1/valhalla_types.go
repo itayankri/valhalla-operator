@@ -65,7 +65,7 @@ type ValhallaSpec struct {
 	PBFURL        string          `json:"pbfUrl,omitempty"`
 	Image         *string         `json:"image,omitempty"`
 	Persistence   PersistenceSpec `json:"persistence,omitempty"`
-	Service       ServiceSpec
+	Service       *ServiceSpec
 	MinReplicas   *int32                       `json:"minReplicas,omitempty"`
 	MaxReplicas   *int32                       `json:"maxReplicas,omitempty"`
 	MinAvailable  *int32                       `json:"minAvailable,omitempty"`
