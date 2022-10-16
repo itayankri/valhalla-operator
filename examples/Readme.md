@@ -1,6 +1,6 @@
 ## Environment Setup
 ### Setting up a kind cluster
-Kind is a tool for running a local version of kubernetea for development use. In case you already have an operational kubernetes cluster you can skip this step. If you don't make sure you have [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) installed on your machine.
+Kind is a tool for running a local version of kubernetes for development use. In case you already have an operational kubernetes cluster you can skip this step. If you don't make sure you have [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) installed on your machine.
 Another requirement is changing the the "storage-driver" configuration in the docker config. Docker uses OverlayFs by default,
 we need to change it to vfs. In order to change this configuration you need to edit a file called "deamon.json".
 Once you have it installed, run the following command in order to create a local kubernetes cluster.
