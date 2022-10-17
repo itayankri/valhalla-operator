@@ -112,8 +112,9 @@ type ServiceSpec struct {
 }
 
 type HistoricalTrafficSpec struct {
-	URL      string `json:"url,omitempty"`
-	Schedule string `json:"schedule,omitempty"`
+	URL      string  `json:"url,omitempty"`
+	Schedule string  `json:"schedule,omitempty"`
+	Image    *string `json:"image,omitempty"`
 }
 
 // ValhallaStatus defines the observed state of Valhalla

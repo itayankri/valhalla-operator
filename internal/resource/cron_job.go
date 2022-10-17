@@ -58,6 +58,10 @@ func (builder *CronJobBuilder) Update(object client.Object) error {
 										Name:  "ROOT_DIR",
 										Value: valhallaDataPath,
 									},
+									{
+										Name:  "URL",
+										Value: builder.Instance.Spec.HistoricalTraffic.URL,
+									},
 								},
 								VolumeMounts: []corev1.VolumeMount{
 									{
