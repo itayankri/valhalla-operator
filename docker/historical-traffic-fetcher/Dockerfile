@@ -1,4 +1,4 @@
-FROM curlimages/curl:7.85.0
+FROM valhalla/valhalla:run-latest
 
 COPY fetch.sh fetch.sh
 

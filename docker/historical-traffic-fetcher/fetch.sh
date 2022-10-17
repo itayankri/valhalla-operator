@@ -23,4 +23,7 @@ if [[ -z "${URL}" ]]; then
 fi
 
 echo "Downloading historical traffic data from $URL"
-curl -O $URL
+curl -O $URL historical_traffic_data
+
+echi "Adding Historical traffic data..."
+valhalla_add_predicted_traffic historical_traffic_data
