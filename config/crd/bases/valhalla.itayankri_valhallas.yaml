@@ -35,6 +35,13 @@ spec:
           spec:
             description: ValhallaSpec defines the desired state of Valhalla
             properties:
+              historicalTraffic:
+                properties:
+                  schedule:
+                    type: string
+                  url:
+                    type: string
+                type: object
               image:
                 type: string
               maxReplicas:
