@@ -25,5 +25,5 @@ fi
 echo "Downloading predicted traffic data from $URL"
 curl -O $URL predicted_traffic_data
 
-echi "Adding Predicted traffic data..."
+echo "Adding Predicted traffic data..."
 valhalla_add_predicted_traffic predicted_traffic_data
