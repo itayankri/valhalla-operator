@@ -15,7 +15,7 @@ spec:
       memory: "150Mi"
   persistence:
     storage: "100Mi"
-    storageClassName: standard
+    storageClassName: nfs-csi
   service:
     type: LoadBalancer
     annotations:
