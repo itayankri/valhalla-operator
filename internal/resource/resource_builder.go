@@ -21,6 +21,7 @@ func (builder *ValhallaResourceBuilder) ResourceBuilders() []ResourceBuilder {
 	builders := []ResourceBuilder{
 		builder.PersistentVolumeClaim(),
 		builder.Job(),
+		builder.CronJob(),
 		builder.Deployment(),
 		builder.Service(),
 		builder.HorizontalPodAutoscaler(),
