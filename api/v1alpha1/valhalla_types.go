@@ -62,16 +62,16 @@ const (
 type ValhallaSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	PBFURL            string                       `json:"pbfUrl,omitempty"`
-	Image             *string                      `json:"image,omitempty"`
-	Persistence       PersistenceSpec              `json:"persistence,omitempty"`
-	Service           *ServiceSpec                 `json:"service,omitempty"`
-	MinReplicas       *int32                       `json:"minReplicas,omitempty"`
-	MaxReplicas       *int32                       `json:"maxReplicas,omitempty"`
-	MinAvailable      *int32                       `json:"minAvailable,omitempty"`
-	ThreadsPerPod     *int32                       `json:"threadsPerPod,omitempty"`
-	Resources         *corev1.ResourceRequirements `json:"resources,omitempty"`
-	HistoricalTraffic *HistoricalTrafficSpec       `json:"historicalTraffic,omitempty"`
+	PBFURL           string                       `json:"pbfUrl,omitempty"`
+	Image            *string                      `json:"image,omitempty"`
+	Persistence      PersistenceSpec              `json:"persistence,omitempty"`
+	Service          *ServiceSpec                 `json:"service,omitempty"`
+	MinReplicas      *int32                       `json:"minReplicas,omitempty"`
+	MaxReplicas      *int32                       `json:"maxReplicas,omitempty"`
+	MinAvailable     *int32                       `json:"minAvailable,omitempty"`
+	ThreadsPerPod    *int32                       `json:"threadsPerPod,omitempty"`
+	Resources        *corev1.ResourceRequirements `json:"resources,omitempty"`
+	PredictedTraffic *PredictedTrafficSpec        `json:"predictedTraffic,omitempty"`
 }
 
 func (spec *ValhallaSpec) GetResources() *corev1.ResourceRequirements {
@@ -111,7 +111,7 @@ type ServiceSpec struct {
 	Annotations map[string]string  `json:"annotations,omitempty"`
 }
 
-type HistoricalTrafficSpec struct {
+type PredictedTrafficSpec struct {
 	URL      string  `json:"url,omitempty"`
 	Schedule string  `json:"schedule,omitempty"`
 	Image    *string `json:"image,omitempty"`

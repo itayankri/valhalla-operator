@@ -60,7 +60,7 @@ func (builder *CronJobBuilder) Update(object client.Object) error {
 									},
 									{
 										Name:  "URL",
-										Value: builder.Instance.Spec.HistoricalTraffic.URL,
+										Value: builder.Instance.Spec.PredictedTraffic.URL,
 									},
 								},
 								VolumeMounts: []corev1.VolumeMount{
