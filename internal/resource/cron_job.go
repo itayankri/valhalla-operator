@@ -96,6 +96,8 @@ func (builder *CronJobBuilder) Update(object client.Object) error {
 	return nil
 }
 
-func (*CronJobBuilder) ShouldDeploy(resources []runtime.Object) bool {
-	return status.IsPersistentVolumeClaimBound(resources) && status.IsJobCompleted(resources)
+func (builder *CronJobBuilder) ShouldDeploy(resources []runtime.Object) bool {
+	return builder.Instance.Spec.PredictedTraffic != nil &&
+		status.IsPersistentVolumeClaimBound(resources) &&
+		status.IsJobCompleted(resources)
 }
