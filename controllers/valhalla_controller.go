@@ -117,7 +117,7 @@ func (r *ValhallaReconciler) getChildResources(ctx context.Context, instance *va
 	if err := r.Client.Get(ctx, types.NamespacedName{
 		Name:      instance.ChildResourceName(resource.CronJobSuffix),
 		Namespace: instance.Namespace,
-	}, job); err != nil && !errors.IsNotFound(err) {
+	}, cronJob); err != nil && !errors.IsNotFound(err) {
 		return nil, err
 	} else if errors.IsNotFound(err) {
 		job = nil
