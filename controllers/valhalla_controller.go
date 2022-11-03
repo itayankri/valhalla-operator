@@ -113,6 +113,16 @@ func (r *ValhallaReconciler) getChildResources(ctx context.Context, instance *va
 		job = nil
 	}
 
+	cronJob := &batchv1.CronJob{}
+	if err := r.Client.Get(ctx, types.NamespacedName{
+		Name:      instance.ChildResourceName(resource.CronJobSuffix),
+		Namespace: instance.Namespace,
+	}, job); err != nil && !errors.IsNotFound(err) {
+		return nil, err
+	} else if errors.IsNotFound(err) {
+		job = nil
+	}
+
 	deployment := &appsv1.Deployment{}
 	if err := r.Client.Get(ctx, types.NamespacedName{
 		Name:      instance.ChildResourceName(resource.DeploymentSuffix),
@@ -143,7 +153,7 @@ func (r *ValhallaReconciler) getChildResources(ctx context.Context, instance *va
 		service = nil
 	}
 
-	return []runtime.Object{pvc, job, deployment, hpa, service}, nil
+	return []runtime.Object{pvc, job, cronJob, deployment, hpa, service}, nil
 }
 
 func (r *ValhallaReconciler) initialize(ctx context.Context, instance *valhallav1alpha1.Valhalla) error {
