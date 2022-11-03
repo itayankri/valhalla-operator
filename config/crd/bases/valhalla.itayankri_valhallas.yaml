@@ -61,6 +61,15 @@ spec:
                   storageClassName:
                     type: string
                 type: object
+              predictedTraffic:
+                properties:
+                  image:
+                    type: string
+                  schedule:
+                    type: string
+                  url:
+                    type: string
+                type: object
               resources:
                 description: ResourceRequirements describes the compute resource requirements.
                 properties:

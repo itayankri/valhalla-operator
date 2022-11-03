@@ -20,3 +20,6 @@ spec:
     type: LoadBalancer
     annotations:
       example-annotation: "example-annotation"
+  predictedTraffic:
+    url: https://example.com
+    schedule: "*/3 * * * *"
