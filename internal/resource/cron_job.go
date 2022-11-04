@@ -34,7 +34,8 @@ func (builder *CronJobBuilder) Update(object client.Object) error {
 	cronJob := object.(*batchv1.CronJob)
 
 	cronJob.Spec = batchv1.CronJobSpec{
-		Schedule: builder.Instance.Spec.PredictedTraffic.Schedule,
+		Schedule:          builder.Instance.Spec.PredictedTraffic.Schedule,
+		ConcurrencyPolicy: batchv1.ForbidConcurrent,
 		JobTemplate: batchv1.JobTemplateSpec{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      builder.Instance.ChildResourceName(CronJobSuffix),
