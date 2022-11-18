@@ -4,8 +4,8 @@ metadata:
   name: example
 spec:
   pbfUrl: https://download.geofabrik.de/australia-oceania/marshall-islands-latest.osm.pbf
-  minReplicas: 1
-  maxReplicas: 3
+  minReplicas: 2
+  maxReplicas: 5
   resources:
     requests:
       cpu: "1000m"
@@ -15,7 +15,8 @@ spec:
       memory: "150Mi"
   persistence:
     storage: "100Mi"
-    storageClassName: nfs-csi
+    storageClassName: standard-rwx
+    accessMode: ReadWriteMany
   service:
     type: LoadBalancer
     annotations:
