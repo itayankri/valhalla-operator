@@ -111,7 +111,7 @@ func (spec *PersistenceSpec) GetAccessMode() corev1.PersistentVolumeAccessMode {
 	if spec.AccessMode != nil {
 		return *spec.AccessMode
 	}
-	return corev1.ReadWriteMany
+	return corev1.ReadWriteOnce
 }
 
 type ServiceSpec struct {

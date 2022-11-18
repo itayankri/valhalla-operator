@@ -16,6 +16,7 @@ spec:
   persistence:
     storage: "100Mi"
     storageClassName: nfs-csi
+    accessMode: ReadWriteMany
   service:
     type: LoadBalancer
     annotations:
