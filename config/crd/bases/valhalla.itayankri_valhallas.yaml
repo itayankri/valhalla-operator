@@ -52,6 +52,8 @@ spec:
                 type: string
               persistence:
                 properties:
+                  accessMode:
+                    type: string
                   storage:
                     anyOf:
                     - type: integer

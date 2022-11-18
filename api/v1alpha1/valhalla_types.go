@@ -102,8 +102,16 @@ func (spec *ValhallaSpec) GetPbfFileName() string {
 }
 
 type PersistenceSpec struct {
-	StorageClassName string             `json:"storageClassName,omitempty"`
-	Storage          *resource.Quantity `json:"storage,omitempty"`
+	StorageClassName string                             `json:"storageClassName,omitempty"`
+	Storage          *resource.Quantity                 `json:"storage,omitempty"`
+	AccessMode       *corev1.PersistentVolumeAccessMode `json:"accessMode,omitempty"`
+}
+
+func (spec *PersistenceSpec) GetAccessMode() corev1.PersistentVolumeAccessMode {
+	if spec.AccessMode != nil {
+		return *spec.AccessMode
+	}
+	return corev1.ReadWriteMany
 }
 
 type ServiceSpec struct {
