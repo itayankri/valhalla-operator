@@ -4,6 +4,7 @@ import (
 	"github.com/itayankri/valhalla-operator/internal/resource"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 var _ = Describe("Job builder", func() {
@@ -13,13 +14,8 @@ var _ = Describe("Job builder", func() {
 			builder = valhallaResourceBuilder.Job()
 		})
 
-		It("Should return 'false' when both PVC is not bound", func() {
-			resources := generateChildResources(false, false)
-			Expect(builder.ShouldDeploy(resources)).To(Equal(false))
-		})
-
-		It("Should return 'true' when PVC is bound", func() {
-			resources := generateChildResources(true, true)
+		It("Should always return 'true'", func() {
+			resources := []runtime.Object{}
 			Expect(builder.ShouldDeploy(resources)).To(Equal(true))
 		})
 	})
