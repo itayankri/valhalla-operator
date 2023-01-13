@@ -115,8 +115,9 @@ func (spec *PersistenceSpec) GetAccessMode() corev1.PersistentVolumeAccessMode {
 }
 
 type ServiceSpec struct {
-	Type        corev1.ServiceType `json:"type,omitempty"`
-	Annotations map[string]string  `json:"annotations,omitempty"`
+	Type           corev1.ServiceType `json:"type,omitempty"`
+	Annotations    map[string]string  `json:"annotations,omitempty"`
+	LoadBalancerIP *string            `json:"loadBalancerIP,omitempty"`
 }
 
 type PredictedTrafficSpec struct {

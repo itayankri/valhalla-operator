@@ -53,6 +53,9 @@ func (builder *ServiceBuilder) Update(object client.Object) error {
 
 	if builder.Instance.Spec.Service != nil {
 		service.Spec.Type = builder.Instance.Spec.Service.Type
+		if builder.Instance.Spec.Service.LoadBalancerIP != nil {
+			service.Spec.LoadBalancerIP = *builder.Instance.Spec.Service.LoadBalancerIP
+		}
 		builder.setAnnotations(service)
 	}
 
