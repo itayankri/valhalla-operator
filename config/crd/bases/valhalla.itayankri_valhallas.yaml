@@ -104,6 +104,8 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  loadBalancerIP:
+                    type: string
                   type:
                     description: Service Type string describes ingress methods for
                       a service
