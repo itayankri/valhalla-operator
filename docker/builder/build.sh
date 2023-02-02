@@ -28,7 +28,7 @@ echo "Building configuration file..."
 valhalla_build_config --mjolnir-tile-dir $ROOT_DIR/$TILES_DIR \
   --mjolnir-tile-extract $ROOT_DIR/valhalla_tiles.tar \
   --mjolnir-timezone $ROOT_DIR/$TILES_DIR/timezones.sqlite \
-  --mjolnir-admin $ROOT_DIR/$TILES_DIRadmins.sqlite \
+  --mjolnir-admin $ROOT_DIR/$TILES_DIR/admins.sqlite \
   --mjolnir-traffic-extract $ROOT_DIR/traffic.tar > $ROOT_DIR/$CONF_DIR/valhalla.json
 
 echo "Building admins..."
