@@ -63,7 +63,6 @@ type ValhallaSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	PBFURL                            string                       `json:"pbfUrl,omitempty"`
-	Image                             *string                      `json:"image,omitempty"`
 	WorkerImage                       *string                      `json:"workerImage,omitempty"`
 	MapBuilderImage                   *string                      `json:"mapBuilderImage,omitempty"`
 	HistoricalTrafficDataFetcherImage *string                      `json:"historicalTrafficDataFetcherImage,omitempty"`
@@ -145,9 +144,8 @@ type ServiceSpec struct {
 }
 
 type PredictedTrafficSpec struct {
-	URL      string  `json:"url,omitempty"`
-	Schedule string  `json:"schedule,omitempty"`
-	Image    *string `json:"image,omitempty"`
+	URL      string `json:"url,omitempty"`
+	Schedule string `json:"schedule,omitempty"`
 }
 
 // ValhallaStatus defines the observed state of Valhalla

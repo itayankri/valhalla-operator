@@ -220,7 +220,6 @@ var _ = Describe("ValhallaController", func() {
 
 func generateValhallaCluster(name string) *valhallav1alpha1.Valhalla {
 	storage := resource.MustParse("10Mi")
-	image := "itayankri/valhalla:latest"
 	minReplicas := int32(1)
 	maxReplicas := int32(3)
 	valhalla := &valhallav1alpha1.Valhalla{
@@ -230,7 +229,6 @@ func generateValhallaCluster(name string) *valhallav1alpha1.Valhalla {
 		},
 		Spec: valhallav1alpha1.ValhallaSpec{
 			PBFURL:      "https://download.geofabrik.de/australia-oceania/marshall-islands-latest.osm.pbf",
-			Image:       &image,
 			MinReplicas: &minReplicas,
 			MaxReplicas: &maxReplicas,
 			Persistence: valhallav1alpha1.PersistenceSpec{
