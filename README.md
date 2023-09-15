@@ -11,7 +11,7 @@ Then you can deploy a Valhalla instance:
 ```
 kubectl apply -f https://github.com/itayankri/valhalla-operator/blob/master/examples/example.yaml
 ```
-For a full setup from scratch checkout this [Medium]([https://github.com/itayankri/valhalla-operator/tree/master/examples](https://medium.com/@itay.ankri/deploying-valhalla-routing-engine-on-kubernetes-using-valhalla-operator-2426e79ac746)).
+For a full setup from scratch checkout this [Medium](https://medium.com/@itay.ankri/deploying-valhalla-routing-engine-on-kubernetes-using-valhalla-operator-2426e79ac746).
 
 ## Pausing the Operator
 The reconciliation can be paused by adding the following annotation to the Valhalla resource:
