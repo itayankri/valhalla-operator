@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/itayankri/valhalla-operator/internal/status"
-	policyv1beta1 "k8s.io/api/policy/v1beta1"
+	policyv1 "k8s.io/api/policy/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -20,7 +20,7 @@ func (builder *ValhallaResourceBuilder) PodDisruptionBudget() *PodDisruptionBudg
 }
 
 func (builder *PodDisruptionBudgetBuilder) Build() (client.Object, error) {
-	return &policyv1beta1.PodDisruptionBudget{
+	return &policyv1.PodDisruptionBudget{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      builder.Instance.ChildResourceName(HorizontalPodAutoscalerSuffix),
 			Namespace: builder.Instance.Namespace,
@@ -30,7 +30,7 @@ func (builder *PodDisruptionBudgetBuilder) Build() (client.Object, error) {
 
 func (builder *PodDisruptionBudgetBuilder) Update(object client.Object) error {
 	name := builder.Instance.ChildResourceName(PodDisruptionBudgetSuffix)
-	pdb := object.(*policyv1beta1.PodDisruptionBudget)
+	pdb := object.(*policyv1.PodDisruptionBudget)
 
 	pdb.Spec.MinAvailable = builder.Instance.Spec.GetMinAvailable()
 	pdb.Spec.Selector = &metav1.LabelSelector{
