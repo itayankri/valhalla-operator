@@ -50,7 +50,7 @@ func (builder *DeploymentBuilder) Update(object client.Object) error {
 				Containers: []corev1.Container{
 					{
 						Name:  name,
-						Image: workerImage,
+						Image: builder.Instance.Spec.GetWorkerImage(),
 						Ports: []corev1.ContainerPort{
 							{
 								ContainerPort: containerPort,

@@ -37,6 +37,12 @@ spec:
             properties:
               image:
                 type: string
+              workerImage:
+                type: string
+              mapBuilderImage:
+                type: string
+              historicalTrafficDataFetcherImage:
+                type: string
               maxReplicas:
                 format: int32
                 type: integer

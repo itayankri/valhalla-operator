@@ -47,7 +47,7 @@ func (builder *CronJobBuilder) Update(object client.Object) error {
 						Containers: []corev1.Container{
 							{
 								Name:  builder.Instance.ChildResourceName(CronJobSuffix),
-								Image: hirtoricalTrafficDataFetcherImage,
+								Image: builder.Instance.Spec.GetHistoricalTrafficDataFetcherImage(),
 								Resources: corev1.ResourceRequirements{
 									Requests: map[corev1.ResourceName]resource.Quantity{
 										"memory": resource.MustParse("100M"),

@@ -62,16 +62,39 @@ const (
 type ValhallaSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	PBFURL           string                       `json:"pbfUrl,omitempty"`
-	Image            *string                      `json:"image,omitempty"`
-	Persistence      PersistenceSpec              `json:"persistence,omitempty"`
-	Service          *ServiceSpec                 `json:"service,omitempty"`
-	MinReplicas      *int32                       `json:"minReplicas,omitempty"`
-	MaxReplicas      *int32                       `json:"maxReplicas,omitempty"`
-	MinAvailable     *int32                       `json:"minAvailable,omitempty"`
-	ThreadsPerPod    *int32                       `json:"threadsPerPod,omitempty"`
-	Resources        *corev1.ResourceRequirements `json:"resources,omitempty"`
-	PredictedTraffic *PredictedTrafficSpec        `json:"predictedTraffic,omitempty"`
+	PBFURL                            string                       `json:"pbfUrl,omitempty"`
+	WorkerImage                       *string                      `json:"workerImage,omitempty"`
+	MapBuilderImage                   *string                      `json:"mapBuilderImage,omitempty"`
+	HistoricalTrafficDataFetcherImage *string                      `json:"historicalTrafficDataFetcherImage,omitempty"`
+	Persistence                       PersistenceSpec              `json:"persistence,omitempty"`
+	Service                           *ServiceSpec                 `json:"service,omitempty"`
+	MinReplicas                       *int32                       `json:"minReplicas,omitempty"`
+	MaxReplicas                       *int32                       `json:"maxReplicas,omitempty"`
+	MinAvailable                      *int32                       `json:"minAvailable,omitempty"`
+	ThreadsPerPod                     *int32                       `json:"threadsPerPod,omitempty"`
+	Resources                         *corev1.ResourceRequirements `json:"resources,omitempty"`
+	PredictedTraffic                  *PredictedTrafficSpec        `json:"predictedTraffic,omitempty"`
+}
+
+func (spec *ValhallaSpec) GetWorkerImage() string {
+	if spec.WorkerImage == nil {
+		return workerImage
+	}
+	return *spec.WorkerImage
+}
+
+func (spec *ValhallaSpec) GetMapBuilderImage() string {
+	if spec.MapBuilderImage == nil {
+		return mapBuilderImage
+	}
+	return *spec.MapBuilderImage
+}
+
+func (spec *ValhallaSpec) GetHistoricalTrafficDataFetcherImage() string {
+	if spec.HistoricalTrafficDataFetcherImage == nil {
+		return historicalTrafficDataFetcherImage
+	}
+	return *spec.HistoricalTrafficDataFetcherImage
 }
 
 func (spec *ValhallaSpec) GetResources() *corev1.ResourceRequirements {
@@ -121,9 +144,8 @@ type ServiceSpec struct {
 }
 
 type PredictedTrafficSpec struct {
-	URL      string  `json:"url,omitempty"`
-	Schedule string  `json:"schedule,omitempty"`
-	Image    *string `json:"image,omitempty"`
+	URL      string `json:"url,omitempty"`
+	Schedule string `json:"schedule,omitempty"`
 }
 
 // ValhallaStatus defines the observed state of Valhalla

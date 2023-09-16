@@ -43,7 +43,7 @@ func (builder *JobBuilder) Update(object client.Object) error {
 				Containers: []corev1.Container{
 					{
 						Name:  "map-builder",
-						Image: mapBuilderImage,
+						Image: builder.Instance.Spec.GetMapBuilderImage(),
 						Resources: corev1.ResourceRequirements{
 							Requests: map[corev1.ResourceName]resource.Quantity{
 								"memory": resource.MustParse("1000M"),
