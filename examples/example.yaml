@@ -3,7 +3,7 @@ kind: Valhalla
 metadata:
   name: example
 spec:
-  pbfUrl: https://download.geofabrik.de/australia-oceania/marshall-islands-latest.osm.pbf
+  pbfUrl: https://download.geofabrik.de/australia-oceania/kiribati-latest.osm.pbf
   minReplicas: 2
   maxReplicas: 5
   resources:
@@ -15,12 +15,9 @@ spec:
       memory: "150Mi"
   persistence:
     storage: "100Mi"
-    storageClassName: standard-rwx
+    storageClassName: nfs-csi
     accessMode: ReadWriteMany
   service:
     type: LoadBalancer
     annotations:
       example-annotation: "example-annotation"
-  predictedTraffic:
-    url: https://example.com
-    schedule: "*/3 * * * *"
