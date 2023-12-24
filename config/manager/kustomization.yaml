@@ -13,4 +13,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: itayankri/valhalla-operator
-  newTag: b096d29
+  newTag: 932c542
